@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Shade for Summer</title>
+		
+		<link rel="stylesheet" type="text/css" href="styles.css"/>
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/themes/prism-twilight.min.css" rel="stylesheet" />
+		
+		<!-- For html reuse -->
+		<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>-->
+	</head>
+	
+	<body>
+		<header>
+			<nav><ul class="inline unselectable">
+				<h1 class="font-effect-warm-glow">Shade for Summer</h1>
+				
+				<li><ul>
+					<li><a href="/2023">Calendar</a></li>
+					<li><a href="/about">About</a></li>
+				</ul></li>
+				<li><ul>
+					<li><a href="/2023/stats">Stats</a></li>
+					<li><a href="/me">Profile</a></li>
+				</ul></li>
+				<li><ul>
+					<li><a href="/settings">Settings</a></li>
+					<li><a href="/auth/logout">Sign Off</a></li>
+				</ul></li>
+				
+				<div class="user">Username <span class="stamp-count">8*</span></div></div>
+			</ul></nav>
+		</header>
+		<!--<script>$.get("header.html", function(data){ $("header").replaceWith(data); });</script>-->
+		
+		<div class="flex-container">
+			<div class="editor language-glsl">void main() {
+	COLOR = vec4(0.0, 0.0, 0.0, 0.5);
+}</div>
+			
+			<div>
+				<!-- Text in canvas element shows only if canvas is unsupported. -->
+				<div id="postcard">
+					<canvas id="target-canvas">Sorry, your browser does not seem to support HTML canvas :(</canvas>
+					<p>Greetings from Spain x</p>
+				</div>
+				
+				<canvas id="editable-canvas" draggable="true" ondrag="drag(event)">Sorry, your browser does not seem to support HTML canvas :(</canvas>
+			</div>
+		</div>
+		
+		<script type="text/javascript" src="scripts/webgl-utils.js"></script>
+		<script type="text/javascript" src="scripts/canvas.js"></script>
+		<script type="text/javascript" src="scripts/main.js"></script>
+		
+		<!-- CodeJar scripts -->
+		<script type="module" id="code">
+			import {CodeJar} from "https://medv.io/codejar/codejar.js?"
+			
+			const editor = document.querySelector(".editor")
+			const jar = new CodeJar(editor, el => Prism.highlightElement(el))
+			jar.onUpdate(code => {updateCanvas(editableCanvas, code)})
+		</script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/components/prism-core.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+	</body>
+</html>
