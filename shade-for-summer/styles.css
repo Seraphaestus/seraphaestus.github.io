@@ -90,6 +90,9 @@ canvas {
 	border: none;
 	
 	position: relative;
+	
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
 }
 button {
 	display: block;

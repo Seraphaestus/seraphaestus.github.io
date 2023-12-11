@@ -22,14 +22,21 @@ let codeJar
 let editor
 let targetCanvas
 let editableCanvas
+
+let doUpdateTime = true
 let updateTimer
 const initialTime = Date.now()
 let time
 
-const targetImageShader =
+const uvShader =
 	"void main() {" +
-	"	COLOR = vec4(RATIO, 1.0, 1.0);" +
+	"	COLOR = vec4(RATIO, 1.0, 0.5);" +
 	"}";
+
+const cakeShader =
+	"const float plate_size = 0.95;const vec3 bg_color = vec3(122.0, 58.0, 51.0) / 255.0;const vec3 cake_color = vec3(238.0, 161.0, 73.0) / 255.0;const float cake_size = 0.7;const float cake_rotation = 0.125;const float cake_height = 0.2;const bool do_perspective = true;const float antialiasing = 0.1;float antialiased_step(float a, float b) {return smoothstep(b * (1.0 - antialiasing * 0.1), b * (1.0 + antialiasing * 0.1), a);}float in_circle(vec2 uv, vec2 center, float radius) {return antialiased_step(radius, distance(uv, center));}float in_segment(vec2 uv, vec2 center, float radius, float rotation, float size) {float angle = mod(atan(uv.y - center.y, uv.x - center.x) + rotation * TAU, TAU);return in_circle(uv, center, radius) * antialiased_step(angle, TAU / 6.0) * antialiased_step(TAU / 6.0 + TAU / 9.0, angle);}void main() {gl_FragColor.a = 1.0;vec2 uv = COORD;if (do_perspective) uv.y = (uv.y - 0.5) * 1.25 + 0.5;COLOR.rgb = mix(bg_color, vec3(1.0), in_circle(uv, vec2(0.5), plate_size / 2.0));gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.95), in_circle(uv, vec2(0.5), 0.8 * plate_size / 2.0));const float layers = 64.0;vec2 cake_offset = vec2(0.125);for (float i = 0.0; i < layers; i += 1.0) {gl_FragColor.rgb = mix(gl_FragColor.rgb, cake_color * 0.8, in_segment(uv + cake_offset, vec2(0.5, 0.5 + i * cake_height / layers), cake_size * plate_size / 2.0, cake_rotation, cake_size));}gl_FragColor.rgb = mix(gl_FragColor.rgb, cake_color, in_segment(uv + cake_offset, vec2(0.5, 0.5 + cake_height), cake_size * plate_size / 2.0, cake_rotation, cake_size));}"
+
+const targetImageShader = cakeShader;
 
 const fragmentSourcePrepend =
 	"#define PI  3.14159265359\n" +
@@ -46,7 +53,7 @@ function setup(event) {
 	
 	const paragraph = document.querySelector("p");
 	editor = document.querySelector(".editor");
-	targetCanvas   = new ShadeableCanvas(document.querySelector("#target-canvas"), paragraph);
+	targetCanvas   = new ShadeableCanvas(document.querySelector("#target-canvas"), paragraph, false);
 	editableCanvas = new ShadeableCanvas(document.querySelector("#editable-canvas"), paragraph);
 	
 	updateCanvas(targetCanvas, targetImageShader, false);
@@ -57,7 +64,8 @@ function setup(event) {
 	console.log("Loaded uniforms:", loadedUniformValues);
 	for (let varName in loadedUniformValues) {
 		updateOrCreateEntry(uniformValues, varName, loadedUniformValues[varName]);
-		document.querySelector(`#${varName}`).value = uniformValues[varName].htmlValue;
+		const handle = document.querySelector(`#${varName}`)
+		if (handle) handle.value = uniformValues[varName].htmlValue;
 	}
 	editableCanvas.redrawShader();
 	
@@ -95,18 +103,17 @@ function setup(event) {
 }
 
 function update() {
-	if (!editableCanvas.program || true) return
+	if (!editableCanvas.program || !doUpdateTime) return
 	
 	time = (Date.now() - initialTime) / 1000.0;
 	editableCanvas.redrawShader();
 }
 
 function updateCanvas(canvas, source, check_similarity = true) {
-	document.querySelector("p").innerHTML = "Postcard Caption x"
 	const validSource = convertSource(source);
 	createCustomUniformInput(validSource);
 	const errorLog = canvas.recreateShader(validSource);
-	const noErrors = handleCompileErrors(source, errorLog, document.querySelector("p"))
+	const noErrors = handleCompileErrors(canvas, source, errorLog)
 	if (noErrors && check_similarity) {
 		//
 	}
@@ -200,15 +207,27 @@ function createCustomUniformInput(source) {
 }
 
 function saveUniformValues() {
-	localStorage.setItem('uniforms', JSON.stringify(uniformValues));
+	// First remove any uniforms which are set to default values
+	var strippedUniformValues = {}
+	for (varName in uniformValues) {
+		var v = uniformValues[varName].htmlValue;
+		console.log(`${v} -> ${(v == "0" || v == "#000000" || v == "false")}`);
+		if (v == "0" || v == "#000000" || v == "false") continue;
+		
+		strippedUniformValues[varName] = uniformValues[varName];
+	}
+	//
+	localStorage.setItem('uniforms', JSON.stringify(strippedUniformValues));
 }
 
-function handleCompileErrors(source, errorLog, display) {
+function handleCompileErrors(canvas, source, errorLog) {
 	for (let errorHTML of document.querySelectorAll(".error")) {
 		errorHTML.remove()
 	}
 	
 	if (!errorLog) return true;
+	
+	console.log("Canvas:", canvas, " Error:", errorLog);
 	
 	var errors = errorLog.split("\n");
 	for (let error of errors) {

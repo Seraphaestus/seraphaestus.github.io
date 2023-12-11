@@ -1,8 +1,9 @@
 class ShadeableCanvas {
 	
-	constructor(canvas, fallbackText) {
+	constructor(canvas, fallbackText, useAlpha = true) {
 		this.canvas = canvas
-		this.webGL = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+		const contextParams = useAlpha ? {premultipliedAlpha: false, antialias: false} : {alpha: false, antialias: false}
+		this.webGL = canvas.getContext("webgl", contextParams) || canvas.getContext("experimental-webgl", contextParams);
 		if (!this.webGL) {
 			fallbackText.innerHTML =
 				"Failed to get WebGL context. " +
