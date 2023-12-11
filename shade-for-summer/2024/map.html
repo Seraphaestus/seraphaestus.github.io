@@ -3,34 +3,17 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>Shade for Summer</title>
+		<base href="https://seraphaestus.github.io/shade-for-summer/index.html"/>
 		
-		<link rel="stylesheet" type="text/css" href="../styles.css"/>
+		<link rel="stylesheet" type="text/css" href="./styles.css"/>
+		
 		<!-- For html reuse -->
-		<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>-->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 	</head>
 	
 	<body>
-		<header>
-			<nav><ul class="inline unselectable">
-				<h1 class="font-effect-warm-glow">Shade for Summer</h1>
-				
-				<li><ul>
-					<li><a href="">Road Map</a></li>
-					<li><a href="./stats.html">Statistics</a></li>
-				</ul></li>
-				<li><ul>
-					<li><a href="../index.html">About</a></li>
-					<li><a href="../help.html">Help</a></li>
-				</ul></li>
-				<li><ul>
-					<li><a href="../settings.html">Settings</a></li>
-					<li><a href="../auth/logout.html">Sign Off</a></li>
-				</ul></li>
-				
-				<div class="user">Username <span class="stamp-count">8<img src="../stamp.png" alt="Stamp" class="custom-emoji"></span></div></div>
-			</ul></nav>
-		</header>
-		<!--<script>$.get("header.html", function(data){ $("header").replaceWith(data); });</script>-->
+		<header></header>
+		<script>$.get("header.html", function(data){ $("header").append(data); });</script>
 		
 		<ul class="unselectable" style="list-style-type: nonea;">
 			<li><a href="../code.html?year=2024&day=1">1. 📌</a></li>
