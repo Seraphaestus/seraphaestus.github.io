@@ -25,9 +25,9 @@ void main() {
 	// It's a 4D vector with components RGB and A for color and transparency, ranging from 0.0 to 1.0
 	COLOR = vec4(1.0, 0.0, 1.0, 1.0);
 	
-	// RATIO represents uv values from (0, 0) at the top-left of the canvas to (1, 1) at the bottom-right of the canvas
+	// RATIO or UV represents values from (0, 0) at the top-left of the canvas to (1, 1) at the bottom-right of the canvas
 	COLOR.rgb = vec3(RATIO, 1.0);
-	// COORD represents aspect-normalized uv values, with the width stretched from the center to be proportionate to the height
+	// COORD represents aspect-ratio-preserving uv values, with the width stretched from the center to be proportionate to the height
 	COLOR.xy = COORD;
 	// TIME represents the number of seconds since the page was loaded
 	COLOR.a = (sin(TIME) + 1.0) / 2.0;

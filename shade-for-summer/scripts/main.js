@@ -7,16 +7,23 @@ window.addEventListener("load", setup, {once: true});
 
 const tokenRegex = /\w+/g
 const uniformRegex = /uniform(\s)+(\w+)(\s)+(\w+)/g
-const dictionary = [
-	{from: "COLOR", to: "gl_FragColor"},
-]
-const reverse_dictionary = [
+const error_dictionary = [
 	{from: "gl_FragColor", to: "COLOR"},
 ]
 
-let uniformValues = {}
+const fragmentSourcePrepend =
+	"#define COLOR gl_FragColor\n" +
+	"#define UV RATIO\n" +
+	"#define PI  3.14159265359\n" +
+	"#define TAU 6.28318530718\n" +
+	"#define E   2.71828182846\n" +
+	"precision mediump float;\n" +
+	"varying mediump vec2 RATIO;\n" +
+	"varying mediump vec2 COORD;\n" +
+	"uniform float TIME;\n";
+const fragmentSourcePrependLineCount = 9;
 
-//	{regex: /\bfloat +(\w)+ *=/g,  from: "float", to: "mediump float"},
+let uniformValues = {}
 
 let codeJar
 let editor
@@ -32,21 +39,11 @@ const uvShader =
 	"void main() {" +
 	"	COLOR = vec4(RATIO, 1.0, 0.5);" +
 	"}";
-
 const cakeShader =
 	"const float plate_size = 0.95;const vec3 bg_color = vec3(122.0, 58.0, 51.0) / 255.0;const vec3 cake_color = vec3(238.0, 161.0, 73.0) / 255.0;const float cake_size = 0.7;const float cake_rotation = 0.125;const float cake_height = 0.2;const bool do_perspective = true;const float antialiasing = 0.1;float antialiased_step(float a, float b) {return smoothstep(b * (1.0 - antialiasing * 0.1), b * (1.0 + antialiasing * 0.1), a);}float in_circle(vec2 uv, vec2 center, float radius) {return antialiased_step(radius, distance(uv, center));}float in_segment(vec2 uv, vec2 center, float radius, float rotation, float size) {float angle = mod(atan(uv.y - center.y, uv.x - center.x) + rotation * TAU, TAU);return in_circle(uv, center, radius) * antialiased_step(angle, TAU / 6.0) * antialiased_step(TAU / 6.0 + TAU / 9.0, angle);}void main() {gl_FragColor.a = 1.0;vec2 uv = COORD;if (do_perspective) uv.y = (uv.y - 0.5) * 1.25 + 0.5;COLOR.rgb = mix(bg_color, vec3(1.0), in_circle(uv, vec2(0.5), plate_size / 2.0));gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.95), in_circle(uv, vec2(0.5), 0.8 * plate_size / 2.0));const float layers = 64.0;vec2 cake_offset = vec2(0.125);for (float i = 0.0; i < layers; i += 1.0) {gl_FragColor.rgb = mix(gl_FragColor.rgb, cake_color * 0.8, in_segment(uv + cake_offset, vec2(0.5, 0.5 + i * cake_height / layers), cake_size * plate_size / 2.0, cake_rotation, cake_size));}gl_FragColor.rgb = mix(gl_FragColor.rgb, cake_color, in_segment(uv + cake_offset, vec2(0.5, 0.5 + cake_height), cake_size * plate_size / 2.0, cake_rotation, cake_size));}"
-
 const targetImageShader = cakeShader;
 
-const fragmentSourcePrepend =
-	"#define PI  3.14159265359\n" +
-	"#define TAU 6.28318530718\n" +
-	"#define E   2.71828182846\n" +
-	"precision mediump float;\n" +
-	"varying mediump vec2 RATIO;\n" +
-	"varying mediump vec2 COORD;\n" +
-	"uniform float TIME;\n";
-const fragmentSourcePrependLineCount = 3;
+
 
 function setup(event) {
 	"use strict";
@@ -64,8 +61,10 @@ function setup(event) {
 	console.log("Loaded uniforms:", loadedUniformValues);
 	for (let varName in loadedUniformValues) {
 		updateOrCreateEntry(uniformValues, varName, loadedUniformValues[varName]);
-		const handle = document.querySelector(`#${varName}`)
-		if (handle) handle.value = uniformValues[varName].htmlValue;
+		const uniformInput = document.querySelector(`#${varName}`)
+		if (uniformInput) {
+			setUniformInputValue(uniformInput, uniformValues[varName].htmlValue)
+		}
 	}
 	editableCanvas.redrawShader();
 	
@@ -110,7 +109,7 @@ function update() {
 }
 
 function updateCanvas(canvas, source, check_similarity = true) {
-	const validSource = convertSource(source);
+	const validSource = fragmentSourcePrepend + source;
 	createCustomUniformInput(validSource);
 	const errorLog = canvas.recreateShader(validSource);
 	const noErrors = handleCompileErrors(canvas, source, errorLog)
@@ -134,12 +133,12 @@ function updateOrCreateEntry(object, key, toUpdate) {
 }
 
 function createCustomUniformInput(source) {
-	for (let uniformInput of document.querySelectorAll(".uniform-input")) {
-		const inputHTML = uniformInput.firstElementChild;
+	for (let uniformInputContainer of document.querySelectorAll(".uniform-input")) {
+		const uniformInput = uniformInputContainer.firstElementChild;
 		
 		const varName = inputHTML.getAttribute("id");
-		updateOrCreateEntry(uniformValues, varName, {htmlValue: inputHTML.value})
-		uniformInput.remove();
+		updateOrCreateEntry(uniformValues, varName, {htmlValue: getUniformInputValue(uniformInput)})
+		uniformInputContainer.remove();
 	}
 	
 	for (let uniform of source.matchAll(uniformRegex)) {
@@ -152,7 +151,7 @@ function createCustomUniformInput(source) {
 			case "bool":
 				attributes = {id: varName, type: "checkbox"}
 				callback = function() {
-					updateOrCreateEntry(uniformValues, varName, {htmlValue: this.value, shaderValue: [this.checked ? 1.0 : 0.0]})
+					updateOrCreateEntry(uniformValues, varName, {htmlValue: this.checked, shaderValue: [this.checked ? 1.0 : 0.0]})
 					saveUniformValues();
 					if (editableCanvas.program) {
 						editableCanvas.webGL.uniform1f(editableCanvas.webGL.getUniformLocation(editableCanvas.program, varName), this.checked ? 1.0 : 0.0);
@@ -198,11 +197,25 @@ function createCustomUniformInput(source) {
 			div.appendChild(uniformInput);
 			
 			if (varName in uniformValues) {
-				uniformInput.value = uniformValues[varName].htmlValue;
+				setUniformInputValue(uniformInput, uniformValues[varName].htmlValue)
 			}
 			
 			uniformInput.oninput = callback;
 		}
+	}
+}
+
+function getUniformInputValue(uniformInput) {
+	if (uniformInput.getAttribute("type") == "checkbox") 
+		return uniformInput.checked
+	return uniformInput.value
+}
+
+function setUniformInputValue(uniformInput, value) {
+	if (uniformInput.getAttribute("type") == "checkbox") {
+		uniformInput.checked = value;
+	} else {
+		uniformInput.value = value;
 	}
 }
 
@@ -211,7 +224,6 @@ function saveUniformValues() {
 	var strippedUniformValues = {}
 	for (varName in uniformValues) {
 		var v = uniformValues[varName].htmlValue;
-		console.log(`${v} -> ${(v == "0" || v == "#000000" || v == "false")}`);
 		if (v == "0" || v == "#000000" || v == "false") continue;
 		
 		strippedUniformValues[varName] = uniformValues[varName];
@@ -234,18 +246,13 @@ function handleCompileErrors(canvas, source, errorLog) {
 		var parts = error.split(" ");
 		var lineNumber = parseInt(parts[1].split(":")[1]) - fragmentSourcePrependLineCount;
 		var message = parts.slice(2).join(" ");
-		message = replaceTokensFromDictionary(message, reverse_dictionary);
+		message = replaceTokensFromDictionary(message, error_dictionary);
 		var message = `Line ${lineNumber}: ${message}`;
 		// position:absolute; top:${2.2 + 1.075 * (lineNumber + 1)}em; left:37em; 
 		editor.insertAdjacentHTML('afterend', `<span class="error unselectable overlay">${message}</span>`);
 		return false;
 	}
 	return true;
-}
-
-// Pass over source code to convert custom tokens to valid GLSL
-function convertSource(source) {
-	return fragmentSourcePrepend + replaceTokensFromDictionary(source, dictionary)
 }
 
 function replaceTokensFromDictionary(string, dictionary) {
