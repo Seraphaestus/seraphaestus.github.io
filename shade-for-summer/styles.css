@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css?family=Handlee');
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300');
 
 /* Main background & text formatting */
 body {
@@ -8,10 +9,15 @@ body {
 	font-weight: 300;
 	font-size: 14pt;
 	min-width: 60em;
+	margin: 0;
 }
 
+.content {
+	margin: 1em;
+}
+
+
 /* Advent of Code styles used only to style the hyperlink to their site */
-@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300');
 .advent-of-code {
 	background: #0f0f23;
 	color: #00cc00; /* Adjusted from #009900 for readability against the background */
@@ -28,16 +34,26 @@ body {
 }
 
 
-/* Format nav bar */
+/* Format header and nav bar */
+header {
+    width: fit-content;
+    overflow: hidden;
+	padding-right: 1em;
+	/* The following adds extra padding to the top without changing position/margins, 
+		so the overflow doesn't clip the fade of the title text glow */
+    padding-top: 1em;
+    top: -10px;
+    position: relative;
+    margin-bottom: -1em;
+}
 header nav ul { /* General */
 	list-style-type: none;
-	margin: -0.75em 0 -0.25em 0;
+	margin: 0.25em 0 -0.25em 0;
 	padding: 0;
 }
 header nav h1 { /* Title */
 	vertical-align: 25%;
-	padding-left: 1.0em;
-	padding-right: 1.0em;
+	padding-inline: 1em;
 }
 header nav li { /* Options */
 	padding-right: 0.4em; /* Adds spacing between navbar links */
@@ -45,7 +61,7 @@ header nav li { /* Options */
 }
 .user {
 	vertical-align: 50%;
-	padding-left: 1.0em;
+	padding-left: 1em;
 	font-style: italic;
 }
 .user span {
