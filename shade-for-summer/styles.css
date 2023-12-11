@@ -1,0 +1,274 @@
+@import url('https://fonts.googleapis.com/css?family=Handlee');
+
+/* Main background & text formatting */
+body {
+	background: #fef3bd;
+	color: #444;
+	font-family: "Handlee", monospace;
+	font-weight: 300;
+	font-size: 14pt;
+	min-width: 60em;
+}
+
+/* Advent of Code styles used only to style the hyperlink to their site */
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300');
+.advent-of-code {
+	background: #0f0f23;
+	color: #00cc00; /* Adjusted from #009900 for readability against the background */
+	font-family: "Source Code Pro", monospace;
+	text-decoration: none;
+	position: relative;
+	top: -0.05em;
+	padding-inline: 0.25em;
+	padding-bottom: 0.1em;
+	border-radius: 0.35em;
+}
+.advent-of-code:hover, .advent-of-code:focus {
+	color: #99ff99;
+}
+
+
+/* Format nav bar */
+header nav ul { /* General */
+	list-style-type: none;
+	margin: -0.75em 0 -0.25em 0;
+	padding: 0;
+}
+header nav h1 { /* Title */
+	vertical-align: 25%;
+	padding-left: 1.0em;
+	padding-right: 1.0em;
+}
+header nav li { /* Options */
+	padding-right: 0.4em; /* Adds spacing between navbar links */
+	text-align: center;
+}
+.user {
+	vertical-align: 50%;
+	padding-left: 1.0em;
+	font-style: italic;
+}
+.user span {
+	padding-left: 0.5em;
+	font-style: initial;
+}
+.inline > * {
+	display: inline-block
+}
+
+.overlay {
+	pointer-events: none;
+}
+
+/* Canvas formatting */
+p {
+	text-align: center;
+	max-width: 24em;
+}
+canvas {
+	display: block;
+	width: 24em;
+	height: 16em;
+	margin: auto;
+	padding: 0;
+	border: none;
+	
+	position: relative;
+}
+button {
+	display: block;
+	font-size: inherit;
+	margin: auto;
+	padding: 0.6em;
+}
+#postcard {
+	background: white;
+	border-style: solid;
+	border-width: 0.1em;
+	margin-inline: auto; /* Centers the div within its parent flex div */
+	width: fit-content; /* Shrink-wraps the width to the canvas inside */
+	padding-top: 0.2em;
+	padding-inline: 0.5em;
+}
+#postcard p {
+	margin: 0.4em 0;
+}
+
+#canvas-area {
+	position: sticky; 
+	align-self: flex-start;
+	top: 3.5em;
+}
+#canvas-area > * {
+	position: relative; 
+	top: -3.5em;
+}
+
+.flex-container {
+	display: flex;
+	justify-content: space-between;
+}
+
+.uniform-input {
+	display: flex; 
+	margin: 0.1em; 
+	margin-left: 0.4em;
+	text-transform: capitalize;
+}
+
+.error {
+	position: sticky;
+	bottom: 0;
+	z-index: 1000; 
+	background: #222226;
+	color: #ffc136;
+	padding: 0.25em 0.5em;
+	font-weight: bold;
+	border: #ff0023;
+	border-style: dashed;
+	border-width: 0.25em;
+}
+
+/* Code editor formatting */
+.editor {
+	color: #fff;
+	background: #282a36;
+	border-radius: 6px;
+	box-shadow: 
+		0 2px 2px 0 rgba(0, 0, 0, 0.14),
+		0 1px 5px 0 rgba(0, 0, 0, 0.12),
+		0 3px 1px -2px rgba(0, 0, 0, 0.2);
+	font-family: monospace;
+	font-size: 14px;
+	font-weight: 400;
+	min-width: 50%;
+	min-height: 240px;
+	letter-spacing: normal;
+	line-height: 20px;
+	padding: 10px;
+	tab-size: 4;
+}
+
+/* Hyperlink text formatting */
+a {
+	text-decoration: none;
+	color: #444;
+}
+a:hover, a:focus {
+	color: #a22;
+	font-weight: 600;
+}
+
+/* Font effects */
+.font-effect-warm-glow {
+	--y_offset: -0.125em;
+	text-shadow: 
+		0.00em calc(var(--y_offset) + 0.05em) 0.20em #fff,
+		0.01em calc(var(--y_offset) + 0.02em) 0.15em #fe0,
+		0.01em calc(var(--y_offset) + 0.05em) 0.15em #fc0,
+		0.02em calc(var(--y_offset) + 0.15em) 0.20em #f90,
+		0.04em calc(var(--y_offset) + 0.20em) 0.30em #f70,
+		0.05em calc(var(--y_offset) + 0.25em) 0.40em #f70,
+		0.06em calc(var(--y_offset) + 0.20em) 0.90em #f50,
+		0.10em calc(var(--y_offset) + 0.10em) 1.00em #f40;
+	color: #ffe;
+}
+
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.custom-emoji {
+	display: inline;
+	width: 1.5em;
+	height: 1.5em;
+	margin-inline: 0.25em;
+	vertical-align: text-bottom;
+	/* Outline */
+	-webkit-filter: drop-shadow(1px 1px 1px #444)
+					drop-shadow(-1px -1px 1px #444);
+	filter: drop-shadow(1px 1px 1px #444) 
+			drop-shadow(-1px -1px 1px #444);
+}
+.amaryllis-image {
+	display: block;
+	margin-inline: auto;
+	width: 50%;
+	scale: 80%;
+	position: relative;
+	top: 4em;
+	left: -0.75em;
+	/* Outline */
+	-webkit-filter: drop-shadow(1px 1px 3px #f99)
+					drop-shadow(-1px -1px 3px #f99);
+	filter: drop-shadow(1px 1px 3px #f99) 
+			drop-shadow(-1px -1px 3px #f99);
+}
+
+/* Vertical Slider */
+.vertical-slider {
+	writing-mode: vertical-lr;
+	width: 0;
+	height: 600%;
+	padding: 0 0.2em;
+	
+	position: absolute;
+	right: 7.5%;
+	transform-origin: top center;
+}
+
+
+/* Checkbox Switch*/
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+.switch input { /* Hide default HTML checkbox */
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.switch span {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.switch span:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.switch input:checked + span {
+  background-color: #2196F3;
+}
+
+.switch input:focus + span {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+.switch input:checked + span:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
