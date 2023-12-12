@@ -1,3 +1,6 @@
+<!--Background-->
+<svg class="unselectable overlay" id="letters" viewBox="0 0 100 100"></svg>
+<!--Navigation-->
 <nav><ul class="inline unselectable">
 	<h1 class="font-effect-warm-glow">Shade for Summer</h1>
 	
@@ -17,12 +20,38 @@
 	<div class="user">Username <span class="stamp-count">8<img src="stamp.png" alt="Stamp" class="custom-emoji"></span></div></div>
 </ul></nav>
 
-<svg style="
-    width: 100%;
-    height: 100%;
-    background: white;
-    position: absolute;
-    top: 0;
-    min-height: 100px;
-    z-index: -1;
-"></svg>
+<script>
+	const randomFloat = function(min, max) { return Math.random() * (max - min) + min; };
+	const randomInt = function(min, max) { return Math.floor(randomFloat(min, max + 1)); };
+	const svg = document.getElementById("letters");
+	let letterHTMLs = [];
+	const letterMaxAngle = 20;
+	const letterSpacing = 75;
+	const letterSize = function(scale, aspect) { return [150 * scale, 100 * scale / aspect]; };
+	for (let i = 0; i <= 1; i++) {
+		const firstPass = (i == 0)
+		const xOffset = firstPass ? 0 : letterSpacing / 2;
+		const yOffset = firstPass ? -15 : 5;
+		for (let ii = 0; ii < 8; ii++) {
+			const letterScale = firstPass ? 1.0 : randomFloat(0.9, 1.1)
+			const letterAspect = firstPass ? 1.0 : randomFloat(1.0, 1.5)
+			const [letterWidth, letterHeight] = letterSize(letterScale, letterAspect);
+			const x = xOffset + (ii - 4) * letterSpacing;
+			const diagonalYOffset = (firstPass ? 0.0 : (4 - ii) * 10);
+			const y = yOffset + randomInt(-10, 10) + diagonalYOffset;
+			let angle = (Math.random() < 0.5 ? 1 : -1) * randomInt(5, letterMaxAngle);
+			if (Math.random() < 0.3) angle += 180;
+			const depth = randomInt(-3, -1);
+			const letter = `<g class="letter" style='z-index: ${depth}; transform: translate(${x}%, ${y}%) rotate(${angle}deg);'>` +
+				`<rect width='${letterWidth}' height='${letterHeight}' rx='5'></rect>` +
+				`<line x1='0' y1='0' x2='${letterWidth/2}' y2='${letterHeight/2}' />` +
+				`<line x1='${letterWidth}' y1='0' x2='${letterWidth/2}' y2='${letterHeight/2}' />` +
+			"</g>"
+			letterHTMLs.push(letter);
+		}
+	}
+	letterHTMLs.sort(() => Math.random() - 0.5);
+	for (let letterHTML of letterHTMLs) {
+		svg.insertAdjacentHTML("beforeend", letterHTML);
+	}
+</script>
