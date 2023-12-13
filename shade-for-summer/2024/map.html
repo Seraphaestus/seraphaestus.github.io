@@ -55,4 +55,17 @@
 			</div>
 		</div>
 	</body>
+
+		<footer style="position: fixed; bottom: 0; font-size: medium; box-shadow: 0 1px 3px #444;">
+			<button type="button" class="collapsible" style="padding: 0.3em 0.6em;"
+				onClick="(function(button){
+					button.classList.toggle('active');
+					button.textContent = button.classList.contains('active') ? 'Hide Attribution' : 'View Attribution'
+					const content = button.nextElementSibling;
+					content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+				})(this);return false;">View Attribution</button>
+			<div class="collapsible" style="padding: 0.3em 0.6em;">
+				UK Map via <a href="https://commons.wikimedia.org/wiki/File:United_Kingdom_administrative_areas.svg">Wikimedia Commons</a> per <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a> with filter, own
+			</div>
+		</footer>
 </html>
