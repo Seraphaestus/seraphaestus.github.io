@@ -89,7 +89,7 @@ function setup(event) {
 		editableCanvas.canvas.style.scale = advancedMode ? "100%" : "87.5%";
 		
 		const editableCanvasArea = document.querySelector("#editable-canvas-area")
-		editableCanvasArea.style.top = advancedMode ? "-3.5em" : "-4.5em";
+		editableCanvasArea.style.translate = advancedMode ? "0 0em" : "0 -1em";
 		updateFromSlider(postcard, editableCanvasArea, advancedMode ? canvasViewSlider.value / 100.0 : 0.0);
 	}
 	canvasViewSlider.oninput = function() {
