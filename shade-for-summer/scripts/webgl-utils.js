@@ -8,16 +8,16 @@ const WebGLUtils = {
 	},
 	
 	createBuffersForScreenQuad: function(webGL) {
-		var posBuffer = webGL.createBuffer();
+		let posBuffer = webGL.createBuffer();
 		webGL.bindBuffer(webGL.ARRAY_BUFFER, posBuffer);
-		var vertices = [-1, -1, 1, -1, -1, 1, 1, 1];
+		let vertices = [-1, -1, 1, -1, -1, 1, 1, 1];
 		webGL.bufferData(webGL.ARRAY_BUFFER, new Float32Array(vertices), webGL.STATIC_DRAW);
 		posBuffer.itemSize = 2;
 		posBuffer.numItems = 4;
 		
-		var uvBuffer = webGL.createBuffer();
+		let uvBuffer = webGL.createBuffer();
 		webGL.bindBuffer(webGL.ARRAY_BUFFER, uvBuffer);
-		var uvs = [0, 0, 1, 0, 0, 1, 1, 1];
+		let uvs = [0, 0, 1, 0, 0, 1, 1, 1];
 		webGL.bufferData(webGL.ARRAY_BUFFER, new Float32Array(vertices), webGL.STATIC_DRAW);
 		uvBuffer.itemSize = 2;
 		uvBuffer.numItems = 4;

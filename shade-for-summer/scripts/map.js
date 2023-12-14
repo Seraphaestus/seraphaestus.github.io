@@ -23,7 +23,7 @@ function copyDayList() {
 	for (let dayPin of document.getElementById("day-pins").children) {
 		const dayLink = dayPin.firstChild
 		if (dayPin.tagName !== "LI" || dayLink.firstChild === null) continue;
-		var dayRow = document.createElement("tr");
+		let dayRow = document.createElement("tr");
 		dayTable.appendChild(dayRow)
 		const linkURL = dayLink.getAttribute("href")
 		const prefixText = "Day " + dayLink.textContent.split('.')[0].substring(3)

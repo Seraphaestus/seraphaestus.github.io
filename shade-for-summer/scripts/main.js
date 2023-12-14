@@ -221,9 +221,9 @@ function setUniformInputValue(uniformInput, value) {
 
 function saveUniformValues() {
 	// First remove any uniforms which are set to default values
-	var strippedUniformValues = {}
+	let strippedUniformValues = {}
 	for (varName in uniformValues) {
-		var v = uniformValues[varName].htmlValue;
+		let v = uniformValues[varName].htmlValue;
 		if (v == "0" || v == "#000000" || v == "false") continue;
 		
 		strippedUniformValues[varName] = uniformValues[varName];
@@ -241,13 +241,13 @@ function handleCompileErrors(canvas, source, errorLog) {
 	
 	console.log("Canvas:", canvas, " Error:", errorLog);
 	
-	var errors = errorLog.split("\n");
+	let errors = errorLog.split("\n");
 	for (let error of errors) {
-		var parts = error.split(" ");
-		var lineNumber = parseInt(parts[1].split(":")[1]) - fragmentSourcePrependLineCount;
-		var message = parts.slice(2).join(" ");
+		let parts = error.split(" ");
+		let lineNumber = parseInt(parts[1].split(":")[1]) - fragmentSourcePrependLineCount;
+		let message = parts.slice(2).join(" ");
 		message = replaceTokensFromDictionary(message, error_dictionary);
-		var message = `Line ${lineNumber}: ${message}`;
+		let message = `Line ${lineNumber}: ${message}`;
 		// position:absolute; top:${2.2 + 1.075 * (lineNumber + 1)}em; left:37em; 
 		editor.insertAdjacentHTML('afterend', `<span class="error unselectable overlay">${message}</span>`);
 		return false;
@@ -256,7 +256,7 @@ function handleCompileErrors(canvas, source, errorLog) {
 }
 
 function replaceTokensFromDictionary(string, dictionary) {
-	var instancesToReplace = []
+	let instancesToReplace = []
 	for (const token of string.matchAll(tokenRegex)) {
 		for (const replacement of dictionary) {
 			if (token[0] != replacement.from) continue
@@ -265,7 +265,7 @@ function replaceTokensFromDictionary(string, dictionary) {
 		}
 	}
 	
-	var offset = 0
+	let offset = 0
 	for (const toReplace of instancesToReplace) {
 		const initial_length = string.length
 		const replacement = toReplace.replacement.to ?? (toReplace.replacement.prepend + toReplace.replacement.from)
@@ -282,7 +282,7 @@ function replaceSubstring(string, start, end, from, to) {
 
 // https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
 function hexToRgb(hex) {
-  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
     r: parseInt(result[1], 16) / 256.0,
     g: parseInt(result[2], 16) / 256.0,
