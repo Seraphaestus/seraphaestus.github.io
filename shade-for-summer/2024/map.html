@@ -16,32 +16,34 @@
 		<script>$.get("components/header.html", function(data){ $("header").append(data); });</script>
 		
 		<div class="content" style="overflow: hidden; padding-bottom: 3%; padding-top: 20%; margin-top: -20%">
+			<div id="day-list" style="position: absolute; z-index: 1; padding: 2em;"><table></table></div>
 			<div id="map">
-				<svg style="width: 50%; height: 80%; text-align: center; overflow: hidden; filter: contrast(90%) brightness(97%) sepia(28%) saturate(110%);">
-					<image xlink:href="https://upload.wikimedia.org/wikipedia/commons/1/11/United_Kingdom_administrative_areas.svg" style="width: 100%; height: auto; y: -12%;">
+				<svg style="width: 50%; height: 77%; text-align: center; overflow: hidden; filter: contrast(90%) brightness(97%) sepia(28%) saturate(110%); box-shadow: 0.5px 0.5px 3px black;">
+					<image xlink:href="https://upload.wikimedia.org/wikipedia/commons/1/11/United_Kingdom_administrative_areas.svg" style="width: 100%; height: auto; y: -12%;" />
+					<path id="route" d="M 245 430 L 260 406 L 270 370" />
 				</svg>
 				
-				<ul class="unselectable">
+				<ul class="unselectable" id="day-pins">
 					<li style="left: 62%; top: 79%;"><a href="./code.html?year=2024&day=1">📌 1. Home</a></li>
 					<li style="left: 63.5%; top: 75%;"><a href="./code.html?year=2024&day=2">✉️ 2. London</a></li>
 					<br>
-					<li style="visibility: hidden;">London: Car + Friend (sticker) -> Red Phone Booth</li>
-					<li style="visibility: hidden;">???: Backpack -> + Pins(LGBT+ flags, etc.)</li>
-					<li style="visibility: hidden;">???: Great British Countryside</li>
-					<li style="visibility: hidden;">???: Full English Breakfast -> Half-eaten</li>
-					<li style="visibility: hidden;">???: English Oak</li>
-					<li style="visibility: hidden;"><a href="https://www.youtube.com/watch?v=BqvBYf1lU4I">???: Little village roundabout</a></li>
-					<li style="visibility: hidden;">Malham: Malham Cove -> ???</li>
-					<li style="visibility: hidden;">Durham</li>
-					<li style="visibility: hidden;">Newcastle: Angel of the North + Tiny friend sticker-> +Shadow?, different sky</li>
-					<li style="visibility: hidden;">Inverness: Loch Ness -> +Nessie</li>
-					<li style="visibility: hidden;">Blackpool: Blackpool tower -> Seagull stealing ice cream</li>
-					<li style="visibility: hidden;"><a href="https://en.wikipedia.org/wiki/Celtic_knot">Celtic cross -> +Patterns inside cross</a></li>
-					<li style="visibility: hidden;">Cardiff: ???</li>
-					<li style="visibility: hidden;">???: Ferry over water -> higher def water?</li>
-					<li style="visibility: hidden;"><a href="https://en.wikipedia.org/wiki/Celtic_knot#/media/File:Mosaic.woodchester.arp.750pix.jpg">Gloucestershire: Woodchester Roman Mosaic -> ???</a></li>
-					<li style="visibility: hidden;"><a href="https://www.spireglass.com/wp-content/uploads/2019/09/salisbury-cathedral.jpg">Salisbury: Salisbury cathedral (get normal map, have to light it??)</a> -> Picture of stonehenge on a postcard rack</li>
-					<li style="visibility: hidden;"><a href="https://www.youtube.com/watch?v=vO6P6iyaOC0&list=PLMzMFQYlU0prXR7OQBzonREVhQOjUSP1m&index=7">London: Greenwich Observatory -> Clock set to irl time?</a></li>
+					<li style="visibility: hidden;">✉️ 3. London: Car + Friend (sticker) -> Red Phone Booth</li>
+					<li style="visibility: hidden;">✉️ 4. ???: Backpack -> + Pins(LGBT+ flags, etc.)</li>
+					<li style="visibility: hidden;">✉️ 5. ???: Great British Countryside</li>
+					<li style="visibility: hidden;">✉️ 6. ???: Full English Breakfast -> Half-eaten</li>
+					<li style="visibility: hidden;">✉️ 7. ???: English Oak</li>
+					<li style="visibility: hidden;"><a href="https://www.youtube.com/watch?v=BqvBYf1lU4I">✉️ 8. ???: Little village roundabout</a></li>
+					<li style="visibility: hidden;">✉️ 9. Malham: Malham Cove -> ???</li>
+					<li style="visibility: hidden;">✉️ 10. Durham</li>
+					<li style="visibility: hidden;">✉️ 11. Newcastle: Angel of the North + Tiny friend sticker-> +Shadow?, different sky</li>
+					<li style="visibility: hidden;">✉️ 12. Inverness: Loch Ness -> +Nessie</li>
+					<li style="visibility: hidden;">✉️ 13. Blackpool: Blackpool tower -> Seagull stealing ice cream</li>
+					<li style="visibility: hidden;"><a href="https://en.wikipedia.org/wiki/Celtic_knot">✉️ 14. Celtic cross -> +Patterns inside cross</a></li>
+					<li style="visibility: hidden;">✉️ 15. Cardiff: ???</li>
+					<li style="visibility: hidden;">✉️ 16. ???: Ferry over water -> higher def water?</li>
+					<li style="visibility: hidden;"><a href="https://en.wikipedia.org/wiki/Celtic_knot#/media/File:Mosaic.woodchester.arp.750pix.jpg">✉️ 17. Gloucestershire: Woodchester Roman Mosaic -> ???</a></li>
+					<li style="visibility: hidden;"><a href="https://www.spireglass.com/wp-content/uploads/2019/09/salisbury-cathedral.jpg">✉️ 18. Salisbury: Salisbury cathedral (get normal map, have to light it??)</a> -> Picture of stonehenge on a postcard rack</li>
+					<li style="visibility: hidden;"><a href="https://www.youtube.com/watch?v=vO6P6iyaOC0&list=PLMzMFQYlU0prXR7OQBzonREVhQOjUSP1m&index=7">✉️ 19. London: Greenwich Observatory -> Clock set to irl time?</a></li>
 					<br>
 					<li style="visibility: hidden;">Anti-aliasing</li>
 					<li style="visibility: hidden;">Extra: Color grading</li>
@@ -54,10 +56,19 @@
 				</ul>
 			</div>
 		</div>
-	</body>
-
+		
+		<!-- Letter cutscene 
+		<div style="position: fixed; top: 1em; right: 0.5em;">
+			<label title="Replay cutscene">
+				<input type="button" onClick="playCutscene()"><span></span>
+			</label>
+		</div>
+		<div id="cutscene" style="position:fixed; top:0; width:100%; height:100%; z-index:999; visibility:hidden;">
+			<div id="letter" style="background:white;"></div>
+		</div>-->
+		
 		<footer style="position: fixed; bottom: 0; font-size: medium; box-shadow: 0 1px 3px #444;">
-			<button type="button" class="collapsible" style="padding: 0.3em 0.6em;"
+			<button type="button" class="collapsible unselectable" style="padding: 0.3em 0.6em;"
 				onClick="(function(button){
 					button.classList.toggle('active');
 					button.textContent = button.classList.contains('active') ? 'Hide Attribution' : 'View Attribution'
@@ -68,4 +79,7 @@
 				UK Map via <a href="https://commons.wikimedia.org/wiki/File:United_Kingdom_administrative_areas.svg">Wikimedia Commons</a> per <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a> with filter, own
 			</div>
 		</footer>
+		
+		<script type="text/javascript" src="scripts/map.js"></script>
+	</body>
 </html>
