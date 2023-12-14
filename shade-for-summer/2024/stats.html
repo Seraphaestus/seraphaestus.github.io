@@ -9,6 +9,8 @@
 		
 		<!-- For html reuse -->
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+		<!-- Plotly.js -->
+		<script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
 	</head>
 	
 	<body>
@@ -16,7 +18,55 @@
 		<script>$.get("components/header.html", function(data){ $("header").append(data); });</script>
 		
 		<div class="content" style="overflow: hidden; padding-bottom: 3%; padding-top: 20%; margin-top: -20%">
-			Statistics
+			<span class="graphs-label">Completion Statistics</span>
+			<div class="graphs flex-container">
+				<div class="graph-section" id="graph-speed" title="Time from being given the image and submitting the first solution">
+					<div class="graph-title">Speed ⏱️</div>
+				</div>
+				<div class="graph-section" id="graph-code-abstraction" title="Number of variables and functions used in the first solution">
+					<div class="graph-title">Abstraction 🗃️</div>
+				</div>
+				<div class="graph-section" id="graph-code-flexibility" title="Number of uniforms used in the first solution">
+					<div class="graph-title">Flexibility 🕹️</div>
+				</div>
+			</div>
+			<br>
+			<span class="graphs-label">Record Statistics</span>
+			<div class="graphs flex-container">
+				<div class="graph-section" id="graph-code-performance" title="Minimum peformance impact over all solutions">
+					<div class="graph-title">Performance 🔥</div>
+				</div>
+				<div class="graph-section" id="graph-accuracy" title="Maximum accuracy achieved over all solutions">
+					<div class="graph-title">Accuracy 🎯</div>
+				</div>
+				<div class="graph-section" id="graph-code-size" title="Minimum lines* of code over all solutions (*ignoring newlines, split on semicolons)">
+					<div class="graph-title">Code Size 📐</div>
+				</div>
+			</div>
 		</div>
+		
+		<script type="text/javascript" src="scripts/graph-utils.js"></script>
+		<script>
+			const graphsRows = document.getElementsByClassName("graphs");
+			for (let graphs of graphsRows) {
+				for (let graphSection of graphs.children) {
+					const graphArea = document.createElement("div");
+					graphArea.className = "graph-area";
+					graphSection.appendChild(graphArea);
+				
+					let data = [];
+					const modeOffset = Math.random() - 0.5;
+					for (let i = 0; i < 500; i++) {
+						data.push((Math.random() + Math.random()) / 2.0 + modeOffset);
+					}
+					
+					const graph = new PlotlyGraph();
+					graph.addHistogram(data, 1 / 16, "#f3f3f3", "#aaa");
+					graph.addVerticalLine(Math.random(), "#d22", 6);
+					Plotly.newPlot(graphArea, graph.plots, graph.style, {staticPlot: true});
+				}
+			}
+			
+		</script>
 	</body>
 </html>
