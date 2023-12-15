@@ -28,6 +28,7 @@ body {
 	padding-inline: 0.25em;
 	padding-bottom: 0.1em;
 	border-radius: 0.35em;
+	color-scheme: only light;
 }
 .advent-of-code:hover, .advent-of-code:focus {
 	color: #99ff99;
@@ -198,6 +199,7 @@ button {
 	padding: 0.6em;
 }
 #postcard {
+	color: #444;
 	background: white;
 	border-style: solid;
 	border-width: 0.1em;
@@ -205,6 +207,7 @@ button {
 	width: fit-content; /* Shrink-wraps the width to the canvas inside */
 	padding-top: 0.2em;
 	padding-inline: 0.5em;
+	color-scheme: only light;
 }
 #postcard p {
 	margin: 0.4em 0;
@@ -308,6 +311,7 @@ a:hover, a:focus {
 	/* Outline */
 	filter: drop-shadow(1px 1px 1px #444) 
 			drop-shadow(-1px -1px 1px #444);
+	color-scheme: only light;
 }
 .amaryllis-image {
 	display: block;
@@ -337,48 +341,49 @@ a:hover, a:focus {
 
 /* Checkbox Switch (Source: https://www.w3schools.com/howto/howto_css_switch.asp)*/
 .switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
+	position: relative;
+	display: inline-block;
+	width: 60px;
+	height: 34px;
+	box-shadow: 0 0 0px 1px #b2b2b2;
 }
 .switch input { /* Hide default HTML checkbox */
-  opacity: 0;
-  width: 0;
-  height: 0;
+	opacity: 0;
+	width: 0;
+	height: 0;
 }
 .switch span {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #ccc;
+	transition: .4s;
 }
 
 .switch span:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: .4s;
+	position: absolute;
+	content: "";
+	height: 26px;
+	width: 26px;
+	left: 4px;
+	bottom: 4px;
+	background-color: white;
+	transition: .4s;
 }
 
 .switch input:checked + span {
-  background-color: #2196F3;
+	background-color: #2196F3;
 }
 
 .switch input:focus + span {
-  box-shadow: 0 0 1px #2196F3;
+	box-shadow: 0 0 1px #2196F3;
 }
 
 .switch input:checked + span:before {
-  transform: translateX(26px);
+	transform: translateX(26px);
 }
 
 /* Collapsible Content (Source: https://www.w3schools.com/howto/howto_js_collapsible.asp) */
@@ -401,4 +406,24 @@ div.collapsible {
 	display: none;
 	overflow: hidden; /* Hidden by default */
 	background-color: #f1f1f1;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+	body {
+		background: #422b26;
+		color: #eee;
+	}
+	.letter { 
+		fill: #d1a262;
+		stroke: #9f7659;
+	}
+	.header nav li {
+		text-shadow: #d1a262 0px 0px 2px, #d1a262 0px 0px 2px, #d1a262 0px 0px 2px, #d1a262 0px 0px 2px;
+	}
+	.easel {
+		background: #7a4433;
+	}
+	.switch span { background-color: #3b3b3b; }
+	.switch span:before { background-color: #99c8ff; }
 }
