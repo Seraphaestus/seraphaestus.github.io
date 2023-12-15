@@ -187,6 +187,10 @@ canvas {
 	image-rendering: pixelated;
 	image-rendering: crisp-edges;
 }
+#editable-canvas {
+	/* Adds a white outline to the canvas so it's still visible when alpha is 0 */
+	box-shadow: #fffa 0px 0px 2px 0px, #fffa 0px 0px 2px 0px, #fffa 0px 0px 2px 0px;
+}
 button {
 	display: block;
 	font-size: inherit;
@@ -204,6 +208,9 @@ button {
 }
 #postcard p {
 	margin: 0.4em 0;
+}
+.easel {
+	background: #e7aa6a;
 }
 
 #canvas-area {
