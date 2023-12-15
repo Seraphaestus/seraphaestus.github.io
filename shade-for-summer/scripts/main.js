@@ -87,6 +87,7 @@ function setup(event) {
 		const postcard = document.querySelector("#postcard")
 		postcard.style.rotate = advancedMode ? "0deg" : "5deg";
 		editableCanvas.canvas.style.scale = advancedMode ? "100%" : "87.5%";
+		editableCanvas.canvas.style.background = advancedMode ? "none" : "white";
 		
 		const editableCanvasArea = document.querySelector("#editable-canvas-area")
 		editableCanvasArea.style.translate = advancedMode ? "0 0em" : "0 -1em";
@@ -136,7 +137,7 @@ function createCustomUniformInput(source) {
 	for (let uniformInputContainer of document.querySelectorAll(".uniform-input")) {
 		const uniformInput = uniformInputContainer.firstElementChild;
 		
-		const varName = inputHTML.getAttribute("id");
+		const varName = uniformInputContainer.getAttribute("id");
 		updateOrCreateEntry(uniformValues, varName, {htmlValue: getUniformInputValue(uniformInput)})
 		uniformInputContainer.remove();
 	}
@@ -247,7 +248,7 @@ function handleCompileErrors(canvas, source, errorLog) {
 		let lineNumber = parseInt(parts[1].split(":")[1]) - fragmentSourcePrependLineCount;
 		let message = parts.slice(2).join(" ");
 		message = replaceTokensFromDictionary(message, error_dictionary);
-		let message = `Line ${lineNumber}: ${message}`;
+		message = `Line ${lineNumber}: ${message}`;
 		// position:absolute; top:${2.2 + 1.075 * (lineNumber + 1)}em; left:37em; 
 		editor.insertAdjacentHTML('afterend', `<span class="error unselectable overlay">${message}</span>`);
 		return false;
