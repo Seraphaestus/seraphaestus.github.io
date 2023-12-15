@@ -39,13 +39,14 @@
 			const x = xOffset + (ii - 4) * letterSpacing;
 			const diagonalYOffset = (firstPass ? 0.0 : (4 - ii) * 10);
 			const y = yOffset + randomInt(-10, 10) + diagonalYOffset;
+			const sealPoint = randomFloat(0.4, 0.6) * letterHeight
 			let angle = (Math.random() < 0.5 ? 1 : -1) * randomInt(5, letterMaxAngle);
 			if (Math.random() < 0.3) angle += 180;
 			const depth = randomInt(-3, -1);
 			const letter = `<g class="letter" style='z-index: ${depth}; transform: translate(${x}%, ${y}%) rotate(${angle}deg);'>` +
 				`<rect width='${letterWidth}' height='${letterHeight}' rx='5'></rect>` +
-				`<line x1='0' y1='0' x2='${letterWidth/2}' y2='${letterHeight/2}' />` +
-				`<line x1='${letterWidth}' y1='0' x2='${letterWidth/2}' y2='${letterHeight/2}' />` +
+				`<line x1='0' y1='0' x2='${letterWidth/2}' y2='${sealPoint}' />` +
+				`<line x1='${letterWidth}' y1='0' x2='${letterWidth/2}' y2='${sealPoint}' />` +
 			"</g>"
 			letterHTMLs.push(letter);
 		}
