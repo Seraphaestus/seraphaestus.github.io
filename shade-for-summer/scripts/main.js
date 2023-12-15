@@ -87,7 +87,6 @@ function setup(event) {
 		const postcard = document.querySelector("#postcard")
 		postcard.style.rotate = advancedMode ? "0deg" : "5deg";
 		editableCanvas.canvas.style.scale = advancedMode ? "100%" : "87.5%";
-		editableCanvas.canvas.style.background = advancedMode ? "none" : "white";
 		
 		const editableCanvasArea = document.querySelector("#editable-canvas-area")
 		editableCanvasArea.style.translate = advancedMode ? "0 0em" : "0 -1em";
