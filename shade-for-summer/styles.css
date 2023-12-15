@@ -426,4 +426,9 @@ div.collapsible {
 	}
 	.switch span { background-color: #3b3b3b; }
 	.switch span:before { background-color: #99c8ff; }
+	
+	.graph-section { background-color: #000; }
+	.graph-title { background-color: #282a36; }
+	.graph-area { background: #282a36; }
+	.js-line { stroke: #c91111 !important; color-scheme: only light; }
 }

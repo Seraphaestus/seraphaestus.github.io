@@ -5,6 +5,8 @@ class PlotlyGraph {
 		this.plots = [];
 		this.style = {
 			margin: {t: 0, l: 10, r: 10, b: 30},
+			paper_bgcolor: "rgb(0,0,0,0)",
+			plot_bgcolor: "rgb(0,0,0,0)",
 		};
 		if (title) this.style.title = title;
 		this.yIndex = 1;
