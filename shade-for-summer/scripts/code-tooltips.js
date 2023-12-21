@@ -6,11 +6,14 @@ let highlighterGrammarModified = false
 // handler a name (setupWebGL) so that we can refer to the
 // function object within the function itself.
 window.addEventListener("load", () => {
+	console.log("CodeTooltips: Loading")
 	insertionQ('.token:before').every(onTokenTooltipAdded);
 	Prism.hooks.add('before-highlight', modifyHighlighterGrammar);
+	console.log("CodeTooltips: Finished loading")
 }, {once: true});
 
 function modifyHighlighterGrammar(env) {
+	console.log("CodeTooltips: Trying to modify highlighter grammar - ", highlighterGrammarModified)
 	if (highlighterGrammarModified) return;
 	Prism.languages.insertBefore('glsl', 'keyword', {
 		'shader_output': {
@@ -34,6 +37,7 @@ function modifyHighlighterGrammar(env) {
 }
 
 function onTokenTooltipAdded(token) {
+	console.log("CodeTooltips: On token tooltip added - ", ${token})
 	const tooltipText = getCodeTooltip(token);
 	if (tooltipText == null) return;
 	
