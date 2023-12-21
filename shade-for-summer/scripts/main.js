@@ -17,6 +17,7 @@ const fragmentSourcePrepend =
 	"#define PI  3.14159265359\n" +
 	"#define TAU 6.28318530718\n" +
 	"#define E   2.71828182846\n" +
+	"#define lerp mix\n" +
 	"precision mediump float;\n" +
 	"varying mediump vec2 RATIO;\n" +
 	"varying mediump vec2 COORD;\n" +

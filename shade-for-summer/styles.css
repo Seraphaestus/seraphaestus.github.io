@@ -266,6 +266,7 @@ button {
 	line-height: 20px;
 	padding: 10px;
 	tab-size: 4;
+	overflow-y: visible !important;
 }
 
 /* Hyperlink text formatting */
@@ -407,6 +408,61 @@ div.collapsible {
 	overflow: hidden; /* Hidden by default */
 	background-color: #f1f1f1;
 }
+
+/* Code Tooltips (Source: https://blog.logrocket.com/creating-beautiful-tooltips-with-only-css/, https://www.w3schools.com/css/css_tooltip.asp) */
+.token {
+	--offset-x: 0;
+}
+.token:before {
+	content: attr(data-before);
+	position: absolute;
+	
+	width: max-content;
+	max-width: 512px;
+	
+	/* horizontally center */
+	left: 50%;
+	transform: translateX(-50%) translateX(var(--offset-x)) translateY(-6px);
+	
+	/* move to top */
+	bottom: 100%;
+	
+	/* basic styles */
+	
+	border-radius: 10px;
+	background: #000;
+	color: #fff;
+	text-align: center;
+	
+	display: none; /* hide by default */
+}
+/* Needs to be without [data-before] or the insertionQ method doesn't pick it up */
+.token:hover:before {
+	display: block;
+}
+/* Needs to be seperate from the .token:before style so empty tooltips don't show */
+.token[data-before]:before {
+	padding: 10px;
+	margin-bottom: 8px;
+}
+/* Tooltip arrow */
+.token:after {
+	content: "‎";
+	position: absolute;
+	top: -14px;
+	left: 50%;
+	margin-left: -5px;
+	border-width: 8px;
+	border-color: black transparent transparent transparent;
+	display: none;
+}
+.token:hover:after {
+	display: block;
+}
+.token[data-before]:after {
+	border-style: solid;
+}
+
 
 /* Dark Mode */
 @media (prefers-color-scheme: dark) {

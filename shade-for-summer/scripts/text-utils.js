@@ -8,23 +8,32 @@
   
   * Usage: const fontSize = getTextWidth(text, getCanvasFont(element));
   */
+function getTextWidth(text, font) {
+	var metrics = getTextMetrics(text, font);
+	return metrics.width;
+}
+
 function getTextPosition(text, font) {
-  // re-use canvas object for better performance
-  const canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
-  const context = canvas.getContext("2d");
-  context.font = font;
-  const metrics = context.measureText(text);
-  return [metrics.actualBoundingBoxLeft, metrics.alphabeticBaseline + metrics.fontBoundingBoxAscent];
+	var metrics = getTextMetrics(text, font);
+	return [metrics.actualBoundingBoxLeft, metrics.alphabeticBaseline + metrics.fontBoundingBoxAscent];
+}
+
+function getTextMetrics(text, font) {
+	// re-use canvas object for better performance
+	const canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
+	const context = canvas.getContext("2d");
+	context.font = font;
+	return context.measureText(text);
 }
 
 function getCssStyle(element, prop) {
-    return window.getComputedStyle(element, null).getPropertyValue(prop);
+	return window.getComputedStyle(element, null).getPropertyValue(prop);
 }
 
-function getCanvasFont(el = document.body) {
-  const fontWeight = getCssStyle(el, 'font-weight') || 'normal';
-  const fontSize = getCssStyle(el, 'font-size') || '16px';
-  const fontFamily = getCssStyle(el, 'font-family') || 'Times New Roman';
-  
-  return `${fontWeight} ${fontSize} ${fontFamily}`;
+function getCanvasFont(element = document.body) {
+	const fontWeight = getCssStyle(element, 'font-weight') || 'normal';
+	const fontSize = getCssStyle(element, 'font-size') || '16px';
+	const fontFamily = getCssStyle(element, 'font-family') || 'Times New Roman';
+	
+	return `${fontWeight} ${fontSize} ${fontFamily}`;
 }
