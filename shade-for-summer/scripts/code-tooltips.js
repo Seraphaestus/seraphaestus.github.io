@@ -37,7 +37,7 @@ function modifyHighlighterGrammar(env) {
 }
 
 function onTokenTooltipAdded(token) {
-	console.log("CodeTooltips: On token tooltip added - ", ${token})
+	console.log("CodeTooltips: On token tooltip added - ", token)
 	const tooltipText = getCodeTooltip(token);
 	if (tooltipText == null) return;
 	
