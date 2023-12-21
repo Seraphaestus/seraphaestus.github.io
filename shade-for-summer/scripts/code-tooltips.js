@@ -1,19 +1,18 @@
 let highlighterGrammarModified = false
 
-// Run everything inside window load event handler, to make sure
-// DOM is fully loaded and styled before trying to manipulate it,
-// and to not mess up the global scope. We are giving the event
-// handler a name (setupWebGL) so that we can refer to the
-// function object within the function itself.
 window.addEventListener("load", () => {
-	console.log("CodeTooltips: Loading")
 	insertionQ('.token:before').every(onTokenTooltipAdded);
 	Prism.hooks.add('before-highlight', modifyHighlighterGrammar);
-	console.log("CodeTooltips: Finished loading")
+	
+	// I don't know why, but neither of the above callbacks are running on the live site (while working fine on local)
+	// until each .editor element is updated somewhow, so here:
+	for (let editor of document.getElementsByClassName("editor")) {
+		editor.innerHTML = editor.innerHTML
+	}
+
 }, {once: true});
 
 function modifyHighlighterGrammar(env) {
-	console.log("CodeTooltips: Trying to modify highlighter grammar - ", highlighterGrammarModified)
 	if (highlighterGrammarModified) return;
 	Prism.languages.insertBefore('glsl', 'keyword', {
 		'shader_output': {
@@ -37,7 +36,6 @@ function modifyHighlighterGrammar(env) {
 }
 
 function onTokenTooltipAdded(token) {
-	console.log("CodeTooltips: On token tooltip added - ", token)
 	const tooltipText = getCodeTooltip(token);
 	if (tooltipText == null) return;
 	
@@ -56,9 +54,6 @@ function onTokenTooltipAdded(token) {
 		token.style.setProperty("--offset-x", (parentRect.left - tooltipLeft + margin) + "px");
 	} else if (tooltipRight > parentRect.right) {
 		token.style.setProperty("--offset-x", (parentRect.right - tooltipRight - margin) + "px");
-	}
-	if (rect.top < parentRect.top + margin) {
-		//token.style.setProperty("--offset-y", "");
 	}
 }
 
