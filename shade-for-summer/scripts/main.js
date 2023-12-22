@@ -1,16 +1,14 @@
-// Run everything inside window load event handler, to make sure
-// DOM is fully loaded and styled before trying to manipulate it,
-// and to not mess up the global scope. We are giving the event
-// handler a name (setupWebGL) so that we can refer to the
-// function object within the function itself.
 window.addEventListener("load", setup, {once: true});
 
 const tokenRegex = /\w+/g
 const uniformRegex = /uniform(\s)+(\w+)(\s)+(\w+)/g
 const error_dictionary = [
 	{from: "gl_FragColor", to: "COLOR"},
+	{from: "RATIO", to: "RATIO/UV"},
+	{from: "mix", to: "mix/lerp"},
 ]
 
+const fragmentSourcePrependLineCount = 10;
 const fragmentSourcePrepend =
 	"#define COLOR gl_FragColor\n" +
 	"#define UV RATIO\n" +
@@ -22,7 +20,6 @@ const fragmentSourcePrepend =
 	"varying mediump vec2 RATIO;\n" +
 	"varying mediump vec2 COORD;\n" +
 	"uniform float TIME;\n";
-const fragmentSourcePrependLineCount = 9;
 
 let uniformValues = {}
 
@@ -40,21 +37,30 @@ const uvShader =
 	"void main() {" +
 	"	COLOR = vec4(RATIO, 1.0, 0.5);" +
 	"}";
-const cakeShader =
-	"const float plate_size = 0.95;const vec3 bg_color = vec3(122.0, 58.0, 51.0) / 255.0;const vec3 cake_color = vec3(238.0, 161.0, 73.0) / 255.0;const float cake_size = 0.7;const float cake_rotation = 0.125;const float cake_height = 0.2;const bool do_perspective = true;const float antialiasing = 0.1;float antialiased_step(float a, float b) {return smoothstep(b * (1.0 - antialiasing * 0.1), b * (1.0 + antialiasing * 0.1), a);}float in_circle(vec2 uv, vec2 center, float radius) {return antialiased_step(radius, distance(uv, center));}float in_segment(vec2 uv, vec2 center, float radius, float rotation, float size) {float angle = mod(atan(uv.y - center.y, uv.x - center.x) + rotation * TAU, TAU);return in_circle(uv, center, radius) * antialiased_step(angle, TAU / 6.0) * antialiased_step(TAU / 6.0 + TAU / 9.0, angle);}void main() {gl_FragColor.a = 1.0;vec2 uv = COORD;if (do_perspective) uv.y = (uv.y - 0.5) * 1.25 + 0.5;COLOR.rgb = mix(bg_color, vec3(1.0), in_circle(uv, vec2(0.5), plate_size / 2.0));gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.95), in_circle(uv, vec2(0.5), 0.8 * plate_size / 2.0));const float layers = 64.0;vec2 cake_offset = vec2(0.125);for (float i = 0.0; i < layers; i += 1.0) {gl_FragColor.rgb = mix(gl_FragColor.rgb, cake_color * 0.8, in_segment(uv + cake_offset, vec2(0.5, 0.5 + i * cake_height / layers), cake_size * plate_size / 2.0, cake_rotation, cake_size));}gl_FragColor.rgb = mix(gl_FragColor.rgb, cake_color, in_segment(uv + cake_offset, vec2(0.5, 0.5 + cake_height), cake_size * plate_size / 2.0, cake_rotation, cake_size));}"
-const targetImageShader = cakeShader;
-
-
+const targetImageShaders = {
+	"1": "const float plate_size = 0.95;const vec3 bg_color = vec3(122.0, 58.0, 51.0) / 255.0;const vec3 cake_color = vec3(238.0, 161.0, 73.0) / 255.0;const float cake_size = 0.7;const float cake_rotation = 0.125;const float cake_height = 0.2;const bool do_perspective = true;const float antialiasing = 0.1;float antialiased_step(float a, float b) {return smoothstep(b * (1.0 - antialiasing * 0.1), b * (1.0 + antialiasing * 0.1), a);}float in_circle(vec2 uv, vec2 center, float radius) {return antialiased_step(radius, distance(uv, center));}float in_segment(vec2 uv, vec2 center, float radius, float rotation, float size) {float angle = mod(atan(uv.y - center.y, uv.x - center.x) + rotation * TAU, TAU);return in_circle(uv, center, radius) * antialiased_step(angle, TAU / 6.0) * antialiased_step(TAU / 6.0 + TAU / 9.0, angle);}void main() {gl_FragColor.a = 1.0;vec2 uv = COORD;if (do_perspective) uv.y = (uv.y - 0.5) * 1.25 + 0.5;COLOR.rgb = mix(bg_color, vec3(1.0), in_circle(uv, vec2(0.5), plate_size / 2.0));gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.95), in_circle(uv, vec2(0.5), 0.8 * plate_size / 2.0));const float layers = 64.0;vec2 cake_offset = vec2(0.125);for (float i = 0.0; i < layers; i += 1.0) {gl_FragColor.rgb = mix(gl_FragColor.rgb, cake_color * 0.8, in_segment(uv + cake_offset, vec2(0.5, 0.5 + i * cake_height / layers), cake_size * plate_size / 2.0, cake_rotation, cake_size));}gl_FragColor.rgb = mix(gl_FragColor.rgb, cake_color, in_segment(uv + cake_offset, vec2(0.5, 0.5 + cake_height), cake_size * plate_size / 2.0, cake_rotation, cake_size));}"
+}
+let targetImageShader = null
 
 function setup(event) {
 	"use strict";
 	
+	const title = document.querySelector("head title");
+	const day = (new URLSearchParams(location.search)).get("day");
+	if (day in targetImageShaders) {
+		title.textContent = title.textContent.replace("Title", "Day " + day);
+		targetImageShader = targetImageShaders[day]
+	} else {
+		title.textContent = title.textContent.replace("Title", "Code Playground");
+	}
+	
 	const paragraph = document.querySelector("p");
 	editor = document.querySelector(".editor");
-	targetCanvas   = new ShadeableCanvas(document.querySelector("#target-canvas"), paragraph, false);
+	if (targetImageShader != null) {
+		targetCanvas = new ShadeableCanvas(document.querySelector("#target-canvas"), paragraph, false);
+		updateCanvas(targetCanvas, targetImageShader, false);
+	}
 	editableCanvas = new ShadeableCanvas(document.querySelector("#editable-canvas"), paragraph);
-	
-	updateCanvas(targetCanvas, targetImageShader, false);
 	updateCanvas(editableCanvas, codeJar.toString(), false);
 	
 	// UpdateCanvas parses the source and creates uniform handles, we can now load values and set them
@@ -73,32 +79,36 @@ function setup(event) {
 	
 	const canvasViewToggle = document.querySelector("#canvas-view-toggle")
 	const canvasViewSlider = document.querySelector("#canvas-view-slider");
-	const updateFromSlider = function(top, bottom, value) {
-		const canvasHeight = 16.0 + 2.2;
-		top.style["margin-top"] = `${value * canvasHeight / 2.0}em`;
-		bottom.style["margin-top"] = `${-value * canvasHeight}em`;
-	}
-	canvasViewToggle.oninput = function() {
-		const advancedMode = canvasViewToggle.checked;
-		canvasViewSlider.style.visibility = advancedMode ? "visible" : "hidden";
-		for (let easel of document.querySelectorAll(".easel")) {
-			easel.style.visibility = advancedMode ? "hidden" : "visible";
+	if (targetImageShader != null) {
+		// On pressing the toggle button to enable/disable advanced mode (showing the below slider)
+		canvasViewToggle.oninput = function() {
+			const advancedMode = canvasViewToggle.checked;
+			canvasViewSlider.style.visibility = advancedMode ? "visible" : "hidden";
+			for (let easel of document.querySelectorAll(".easel")) {
+				easel.style.visibility = advancedMode ? "hidden" : "visible";
+			}
+			
+			const postcard = document.querySelector("#postcard");
+			postcard.style.rotate = advancedMode ? "0deg" : "5deg";
+			editableCanvas.canvas.style.scale = advancedMode ? "100%" : "87.5%";
+			
+			const editableCanvasArea = document.querySelector("#editable-canvas-area");
+			editableCanvasArea.style.translate = advancedMode ? "0 0em" : "0 -1em";
+			updateFromViewSlider(postcard, editableCanvasArea, advancedMode ? canvasViewSlider.value / 100.0 : 0.0);
 		}
-		
-		const postcard = document.querySelector("#postcard")
-		postcard.style.rotate = advancedMode ? "0deg" : "5deg";
-		editableCanvas.canvas.style.scale = advancedMode ? "100%" : "87.5%";
-		
-		const editableCanvasArea = document.querySelector("#editable-canvas-area")
-		editableCanvasArea.style.translate = advancedMode ? "0 0em" : "0 -1em";
-		updateFromSlider(postcard, editableCanvasArea, advancedMode ? canvasViewSlider.value / 100.0 : 0.0);
+		// On moving the slider
+		canvasViewSlider.oninput = function() {
+			const postcard = document.querySelector("#postcard");
+			const editableCanvasArea = document.querySelector("#editable-canvas-area");
+			updateFromViewSlider(postcard, editableCanvasArea, canvasViewSlider.value / 100.0);
+		}
+	} else {
+		canvasViewToggle.style.visibility = "hidden";
+		const postcard = document.querySelector("#postcard");
+		const editableCanvasArea = document.querySelector("#editable-canvas-area");
+		postcard.style.visibility = "hidden";
+		updateFromViewSlider(postcard, editableCanvasArea, 1.0);
 	}
-	canvasViewSlider.oninput = function() {
-		const postcard = document.querySelector("#postcard")
-		const editableCanvasArea = document.querySelector("#editable-canvas-area")
-		updateFromSlider(postcard, editableCanvasArea, canvasViewSlider.value / 100.0);
-	}
-	
 	console.log("Initialized");
 }
 
@@ -117,6 +127,12 @@ function updateCanvas(canvas, source, check_similarity = true) {
 	if (noErrors && check_similarity) {
 		//
 	}
+}
+
+function updateFromViewSlider(top, bottom, value) {
+	const canvasHeight = 16.0 + 2.2;
+	top.style["margin-top"] = `${value * canvasHeight / 2.0}em`;
+	bottom.style["margin-top"] = `${-value * canvasHeight}em`;
 }
 
 function formatVarName(varName) {

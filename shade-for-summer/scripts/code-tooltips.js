@@ -148,7 +148,7 @@ function getCodeTooltip(token) {
 			case ":": return 'Part of a ternary operator\nx = boolean ? 1.0 : 2.0;  ≡  if (boolean) { x = 1.0; } else { x = 2.0; }';
 			case "||": return "Boolean Or operator\nReturns true if either operand is true, else returns false";
 			case "&&": return "Boolean And operator\nReturns true only if both operands are true, else returns false";
-			case "!": return "Boolean Negation operator\nReturns false if the boolean is true and vice versa";
+			case "!": return "Boolean Negation operator\nReturns false if the following boolean is true and vice versa";
 			case "==": return "Equals operator\nReturns true if the operands have the same value, else false";
 			case "!=": return "Not Equals operator\nReturns false if the operands have the same value, else true";
 			case "<": return "Less Than operator\nReturns true if the number on the left is less than the number on the right, else false";
