@@ -474,7 +474,7 @@ div.collapsible {
 		fill: #d1a262;
 		stroke: #9f7659;
 	}
-	.header nav li {
+	header nav li {
 		text-shadow: #d1a262 0px 0px 2px, #d1a262 0px 0px 2px, #d1a262 0px 0px 2px, #d1a262 0px 0px 2px;
 	}
 	.easel {
