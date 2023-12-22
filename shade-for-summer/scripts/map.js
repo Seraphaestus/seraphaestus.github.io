@@ -21,6 +21,7 @@ function setup(event) {
 function copyDayList() {
 	const dayTable = document.getElementById("day-list").firstChild
 	for (let dayPin of document.getElementById("day-pins").children) {
+		if (dayPin.style.visibility == "hidden") continue;
 		const dayLink = dayPin.firstChild
 		if (dayPin.tagName !== "LI" || dayLink.firstChild === null) continue;
 		let dayRow = document.createElement("tr");
