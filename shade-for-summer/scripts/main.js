@@ -103,7 +103,7 @@ function setup(event) {
 			updateFromViewSlider(postcard, editableCanvasArea, canvasViewSlider.value / 100.0);
 		}
 	} else {
-		canvasViewToggle.style.visibility = "hidden";
+		canvasViewToggle.parentElement.parentElement.style.visibility = "hidden";
 		const postcard = document.querySelector("#postcard");
 		const editableCanvasArea = document.querySelector("#editable-canvas-area");
 		postcard.style.visibility = "hidden";
