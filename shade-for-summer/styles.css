@@ -13,7 +13,18 @@ body {
 }
 
 .content {
+	position: relative;
+	z-index: -100;
 	margin: 1em;
+	translate: 0 0.5em;
+	
+	background: #fffadf;
+	background-image: linear-gradient(to right, transparent 4em, transparent 1px, #ff9696 78px, transparent 1px, transparent 10000px), linear-gradient(to bottom, #cdcdcd 1px, transparent 1px);
+	background-size: 10000.1px 1.325em;
+	box-shadow: 0px 0px 1px black, 0px 0px 1px black;
+	
+	padding-inline: 5em;
+	padding-top: 1.4em;
 }
 
 
@@ -79,7 +90,7 @@ header a {
 .letter { 
 	fill: #fff; 
 	stroke-width: 0.1em; 
-	stroke: #ccc; 
+	stroke: #e3e3e3; 
 	transform-box: fill-box; 
 	transform-origin: center; 
 	/* Actual transform set in JS script */
@@ -460,6 +471,7 @@ div.collapsible {
 	left: 50%;
 	margin-left: -5px;
 	border-width: 8px;
+	height: 0;
 	border-color: black transparent transparent transparent;
 	display: none;
 }
@@ -476,6 +488,11 @@ div.collapsible {
 	body {
 		background: #422b26;
 		color: #eee;
+	}
+	.content {
+		background: none;
+		background-image: none;
+		box-shadow: none;
 	}
 	.letter { 
 		fill: #dba262;
