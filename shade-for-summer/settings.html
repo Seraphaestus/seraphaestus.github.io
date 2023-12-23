@@ -20,7 +20,22 @@
 		<script>$.get("components/header.html", function(data){ $("header").append(data); });</script>
 		
 		<div class="content page">
-			Settings
+			<div>Enable code tooltips<label class="switch" title="Toggle code tooltips" style="left:0.5em; top:-0.3em; scale:0.7;">
+						<input id="show-code-tooltips" type="checkbox"><span></span>
+			</label><br></div>
 		</div>
+		
+		<script>
+			const settings = [
+				{id: "show-code-tooltips", type: "boolean", init: true}
+			];
+			for (let setting of settings) {
+				const input = document.getElementById(setting.id);
+				if (setting.type == "boolean") {
+					if (JSON.parse(localStorage.getItem(`settings.${setting.id}`)) ?? setting.init) input.setAttribute("checked", "");
+					input.oninput = function() { localStorage.setItem(`settings.${setting.id}`, JSON.stringify(input.checked)); }
+				}
+			}
+		</script>
 	</body>
 </html>

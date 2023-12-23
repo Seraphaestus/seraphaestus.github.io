@@ -1,7 +1,9 @@
 let highlighterGrammarModified = false
 
 window.addEventListener("load", () => {
-	insertionQ('.token:before').every(onTokenTooltipAdded);
+	const showCodeTooltips = JSON.parse(localStorage.getItem("settings.show-code-tooltips")) ?? true;
+	if (showCodeTooltips) insertionQ('.token:before').every(onTokenTooltipAdded);
+	
 	Prism.hooks.add('before-highlight', modifyHighlighterGrammar);
 	
 	// I don't know why, but neither of the above callbacks are running on the live site (while working fine on local)
