@@ -13,11 +13,10 @@ body {
 }
 
 .content {
-	position: relative;
-	z-index: -100;
 	margin: 1em;
-	translate: 0 0.5em;
-	
+}
+
+.page {
 	background: #fffadf;
 	background-image: linear-gradient(to right, transparent 4em, transparent 1px, #ff9696 78px, transparent 1px, transparent 10000px), linear-gradient(to bottom, #cdcdcd 1px, transparent 1px);
 	background-size: 10000.1px 1.325em;
@@ -25,6 +24,7 @@ body {
 	
 	padding-inline: 5em;
 	padding-top: 1.4em;
+	translate: 0 0.5em;
 }
 
 
@@ -48,6 +48,7 @@ body {
 
 /* Format header and nav bar */
 header {
+	z-index: 100;
 	width: fit-content;
 	padding-right: 1em;
 	padding-bottom: 0.25em;
@@ -489,7 +490,7 @@ div.collapsible {
 		background: #422b26;
 		color: #eee;
 	}
-	.content {
+	.page {
 		background: none;
 		background-image: none;
 		box-shadow: none;

@@ -16,11 +16,11 @@
 	</head>
 	
 	<body>
-		<header style="z-index: 1;"></header>
+		<header></header>
 		<script>$.get("components/header.html", function(data){ $("header").append(data); });</script>
 		
 		<div class="content" style="overflow: hidden; padding-bottom: 3%; padding-top: 20%; margin-top: -20%">
-			<div id="day-list" style="position: absolute; z-index: 1; padding: 2em;"><table></table></div>
+			<div id="day-list" class="page" style="position:absolute; min-width:24em;"><table></table></div>
 			<div id="map">
 				<svg style="width: 50%; height: 77%; text-align: center; overflow: hidden; filter: contrast(90%) brightness(97%) sepia(28%) saturate(110%); box-shadow: 0.5px 0.5px 3px black;">
 					<image xlink:href="https://upload.wikimedia.org/wikipedia/commons/1/11/United_Kingdom_administrative_areas.svg" style="width: 100%; height: auto; y: -12%;" />
