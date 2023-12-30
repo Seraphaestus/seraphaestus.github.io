@@ -20,8 +20,8 @@
 		<script>$.get("components/header.html", function(data){ $("header").append(data); });</script>
 		
 		<div class="content flex-container">
-			<div style="flex: 1 1 60%; margin: 0 1em 3.5em 1em;">
-				<div id="uniform-area" style="display: flex; flex-wrap: wrap"></div>
+			<div style="flex:1 1 60%; margin:0 1em 3.5em 1em; position:relative; z-index:1">
+				<div id="uniform-area"></div>
 				<div class="editor language-glsl" style="margin-top:0.5em">void main() {
 	COLOR = vec4(0.15, 0.15, 0.15, 1.0);
 }</div>
@@ -63,9 +63,10 @@
 		<!-- CodeJar scripts -->
 		<script type="module" id="code">
 			import {CodeJar} from "https://medv.io/codejar/codejar.js?"
+			import {withLineNumbers} from 'https://medv.io/codejar/linenumbers.js';
 			
 			const editor = document.querySelector(".editor");
-			codeJar = new CodeJar(editor, el => Prism.highlightElement(el));
+			codeJar = new CodeJar(editor, withLineNumbers(Prism.highlightElement));
 			// Register event handler to update canvas + save code on code edited
 			codeJar.onUpdate(code => {
 				updateCanvas(editableCanvas, code);

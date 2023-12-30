@@ -33,6 +33,10 @@ function modifyHighlighterGrammar(env) {
 			pattern: /\b(?:distance|length|dot)\b/,
 			alias: 'function',
 		},
+		'uniform_hint': {
+			pattern: /#(?:range|color)\b/,
+			alias: 'punctuation',
+		},
 	});
 	highlighterGrammarModified = true;
 }
@@ -63,6 +67,24 @@ function getCodeTooltip(token) {
 	if (token.classList.contains("keyword")) {
 		switch (token.innerText) {
 			case "void": return "The output type void means this function does not return a value";
+			
+			case "break": return "A statement which causes the code to instantly exit the current loop";
+			case "continue": return "A statement which causes the code to instantly exit the current iteration of a loop and skip to the next iteration";
+			case "return": return "A statement which causes the code to instantly exit the current function and output the following value, which the function will thereby evaluate to when called.";
+			case "discard": return "[Advanced] A statement which causes the code to instantly exit the fragment shader and discard the current pixel of the canvas.";
+			
+			case "if": return "A branch which will only run the code within it if its condition is true\nThe following brackets must contain an expression which evaluates to a boolean true-false value:\nif (true) {}\nif (a < b && a < c) {}";
+			case "else": return "A follow-up to an if statement which runs the code within it only if the previous if statement evaluated to false\nif (false) {} else {}\nIt can also chain further if statements like so:\nif (false) {} else if (false) {} else {}"
+			case "for": return "A loop which will run the code within it multiple times\nIn the following brackets you must define an iterator variable, its starting value, looping condition, and increment:\nfor (int i = 0; i < n; i += 1) {}\ni starts at 0, and while less than n, increments by 1";
+			case "while": return "[Unavailable] A loop which will keep running the code within it until its condition is no longer true\nWhile loops are not available in WebGL  :(";
+			
+			case "true": return "Boolean True constant";
+			case "false": return "Boolean False constant";
+			
+			case "const": return "Modifies a variable to be constant for efficiency\nOnce initialized, it cannot be given a new value";
+			case "uniform": return "Modifies a variable to allow constant values to be externally passed into the shader, using input fields that will be automatically generated above the code box\nUniforms must be declared at the top level, outside of functions\nSupported types: float, vec3 (as color), bool";
+			case "struct": return "[Advanced] A data type which groups variables as one object.\ne.g. struct example { float f; bool b; };\ne.g. example x = example(0.0, true);\nStruct variables can also be declared inline after the struct definition. e.g. struct example {float f;} x;";
+			
 			case "float": return "A data type which represents a decimal number\ne.g. 1.0, 2.345, 999.999";
 			case "vec2": return "A data type which represents a 2-dimensional vector\ne.g. 2D coordinate\nIt consists of 2 floats: xy\ne.g. vec2(1.0, 2.0).x  ≡  1.0";
 			case "vec3": return "A data type which represents a 3-dimensional vector\ne.g. RGB color\nIt consists of 3 floats: xyz aka rgb\ne.g. vec3(1.0, 2.0, 3.0).z  ≡  3.0";
@@ -72,6 +94,7 @@ function getCodeTooltip(token) {
 			case "mat2": return "A data type which represents a 2-dimensional matrix, i.e. a 2x2 array of floats";
 			case "mat3": return "A data type which represents a 3-dimensional matrix, i.e. a 3x3 array of floats";
 			case "mat4": return "A data type which represents a 4-dimensional matrix, i.e. a 4x4 array of floats";
+			
 			case "COLOR": return "A vec4 output representing the RGBA color of the given pixel\nCOLOR  ≡  gl_FragColor";
 			case "RATIO":
 			case "UV": return "A vec2 input representing the position of the pixel on the canvas\nGoes from (0.0, 0.0) at ⇱ to (1.0, 1.0) at ⇲\nRATIO  ≡  UV";
@@ -80,15 +103,6 @@ function getCodeTooltip(token) {
 			case "PI": return "Pi constant: 180° around a circle in radians\nPI  ≡  3.14159265359";
 			case "TAU": return "Tau constant: 360° around a circle in radians\nTAU  ≡  6.28318530718";
 			case "E": return "Euler's number constant: the base of natural logorithms\nE  ≡  2.71828182846";
-			case "true": return "Boolean True constant";
-			case "false": return "Boolean False constant";
-			case "const": return "Modifies a variable to be constant for efficiency\nOnce initialized, it cannot be given a new value";
-			case "uniform": return "Modifies a variable to allow constant values to be externally passed into the shader, using input fields that will be automatically generated above the code box\nUniforms must be declared at the top level, outside of functions\nSupported types: float, vec3 (as color), bool";
-			case "continue": return "A statement which causes the code to instantly exit the current iteration of a loop and skip to the next iteration";
-			case "break": return "A statement which causes the code to instantly exit the current loop";
-			case "if": return "A branch which will only run the code within it if its condition is true\nThe following brackets must contain an expression which evaluates to a boolean true-false value:\nif (true) {}\nif (a < b && a < c) {}";
-			case "else": return "A follow-up to an if statement which runs the code within it only if the previous if statement evaluated to false\nif (false) {} else {}\nIt can also chain further if statements like so:\nif (false) {} else if (false) {} else {}"
-			case "for": return "A loop which will run the code within it multiple times\nIn the following brackets you must define an iterator variable, its starting value, looping condition, and increment:\nfor (int i = 0; i < n; i += 1) {}\ni starts at 0, and while less than n, increments by 1";
 		}
 	} else if (token.classList.contains("function")) {
 		switch (token.innerText) {
@@ -146,8 +160,7 @@ function getCodeTooltip(token) {
 			case "-=": return "Subtraction-assignment operator\na -= b;  ≡  a = a - b;";
 			case "*=": return "Multiplication-assignment operator\na *= b;  ≡  a = a * b;";
 			case "/=": return "Division-assignment operator\na /= b;  ≡  a = a / b;";
-			case "?":
-			case ":": return 'Part of a ternary operator\nx = boolean ? 1.0 : 2.0;  ≡  if (boolean) { x = 1.0; } else { x = 2.0; }';
+			case "?": return "[Advanced] Part of a ternary operator\nx = boolean ? 1.0 : 2.0;  ≡  if (boolean) { x = 1.0; } else { x = 2.0; }";
 			case "||": return "Boolean Or operator\nReturns true if either operand is true, else returns false";
 			case "&&": return "Boolean And operator\nReturns true only if both operands are true, else returns false";
 			case "!": return "Boolean Negation operator\nReturns false if the following boolean is true and vice versa";
@@ -157,6 +170,16 @@ function getCodeTooltip(token) {
 			case "<=": return "Less Than Or Equal To operator\nReturns true if the number on the left is less than or equal to the number on the right, else false";
 			case ">": return "Greater Than operator\nReturns true if the number on the left is greater than the number on the right, else false";
 			case ">=": return "Greater Than Or Equal To operator\nReturns true if the number on the left is greater than or equal to the number on the right, else false";
+		}
+	} else if (token.classList.contains("uniform_hint")) {
+		switch (token.innerText) {
+			case "#ignore": return "Uniform hint\nA HTML input will not be created for this uniform";
+			case "#range": return "Uniform hint\nSpecifies the range of a input slider\ne.g. #range(0, 1, 0.01)  gives the slider a range of 0 to 1 with a step of 0.01\nThe step parameter is optional";
+			case "#color": return "Uniform hint\nSpecifies that a vec3 or vec4 should be interpreted as a color for the purposes of HTML input controls";
+		}
+	} else if (token.classList.contains("punctuation")) {
+		switch (token.innerText) {
+			case ":": return "[Advanced] Part of a ternary operator\nx = boolean ? 1.0 : 2.0;  ≡  if (boolean) { x = 1.0; } else { x = 2.0; }";
 		}
 	}
 	return null

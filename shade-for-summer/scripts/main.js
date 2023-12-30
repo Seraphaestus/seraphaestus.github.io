@@ -1,7 +1,8 @@
 window.addEventListener("load", setup, {once: true});
 
 const tokenRegex = /\w+/g
-const uniformRegex = /uniform(\s)+(\w+)(\s)+(\w+)/g
+//const uniformRegex = /uniform\s+(?<type>\w+)\s+(?<name>\w+)/g	// Basic uniform regex without any type hints
+const uniformRegex = /uniform\s+(?<type>\w+)\s+(?<name>\w+)\s*(?<hints>(?:#(?:range\((?:[0-9]+\.?[0-9]*\s*,\s*){1,2}(?:[0-9]+\.?[0-9]*\s*)\)|color|ignore)\s*)*);/g
 const error_dictionary = [
 	{from: "gl_FragColor", to: "COLOR"},
 	{from: "RATIO", to: "RATIO/UV"},
@@ -19,7 +20,7 @@ const fragmentSourcePrepend =
 	"precision mediump float;\n" +
 	"varying mediump vec2 RATIO;\n" +
 	"varying mediump vec2 COORD;\n" +
-	"uniform float TIME;\n";
+	"uniform float TIME #ignore;\n";
 
 let uniformValues = {}
 
@@ -120,8 +121,8 @@ function update() {
 }
 
 function updateCanvas(canvas, source, check_similarity = true) {
-	const validSource = fragmentSourcePrepend + source;
-	createCustomUniformInput(validSource);
+	let validSource = fragmentSourcePrepend + source;
+	validSource = createCustomUniformInput(validSource);
 	const errorLog = canvas.recreateShader(validSource);
 	const noErrors = handleCompileErrors(canvas, source, errorLog)
 	if (noErrors && check_similarity) {
@@ -150,6 +151,8 @@ function updateOrCreateEntry(object, key, toUpdate) {
 }
 
 function createCustomUniformInput(source) {
+	let validSource = source;
+	let indexOffset = 0;
 	for (let uniformInputContainer of document.querySelectorAll(".uniform-input")) {
 		const uniformInput = uniformInputContainer.firstElementChild;
 		
@@ -159,9 +162,32 @@ function createCustomUniformInput(source) {
 	}
 	
 	for (let uniform of source.matchAll(uniformRegex)) {
-		const type = uniform[2];
-		const varName = uniform[4];
-		if (varName == "TIME") continue;
+		const type = uniform.groups.type;
+		const varName = uniform.groups.name;
+		let hints = uniform.groups.hints;
+		
+		// Remove the custom uniform hints from the source code so it doesn't error, and extract the actual hint data
+		if (hints != "") {
+			const hintsIndex = uniform.index + indexOffset + uniform[0].indexOf(hints);
+			validSource = validSource.slice(0, hintsIndex) + validSource.slice(hintsIndex + hints.length);
+			indexOffset -= hints.length;
+			
+			const hints_copy = hints.replace(" ", "").split("#").filter(n => n);
+			hints = {}
+			for (hint of hints_copy) {
+				const parts = hint.split("(");
+				if (parts.length == 1) {
+					hints[parts[0]] = null;
+				} else {
+					hints[parts[0]] = parts[1].replace(")", "").split(",").map(s => s.replace(" ", ""));
+				}
+			}
+		} else {
+			hints = {}
+		}
+		
+		if ("ignore" in hints) continue;
+		
 		let callback = null;
 		let attributes = null;
 		switch (type) {
@@ -177,25 +203,33 @@ function createCustomUniformInput(source) {
 				}
 				break;
 			case "float":
-				attributes = {id: varName, type: "range", min: "0", max: "100", value: "0", style: "flex-grow: 1;"}
+				let min = 0.0, max = 1.0, step = 0.01;
+				if ("range" in hints) {
+					min = hints.range[0];
+					max = hints.range[1];
+					if (hints.range.length > 2) step = hints.range[2];
+				}
+				attributes = {id: varName, type: "range", min: min, max: max, step: step, value: "0", style: "flex-grow: 1;"}
 				callback = function() {
-					updateOrCreateEntry(uniformValues, varName, {htmlValue: this.value, shaderValue: [this.value / 100.0]})
+					updateOrCreateEntry(uniformValues, varName, {htmlValue: this.value, shaderValue: [this.value]})
 					saveUniformValues();
 					if (editableCanvas.program) {
-						editableCanvas.webGL.uniform1f(editableCanvas.webGL.getUniformLocation(editableCanvas.program, varName), this.value / 100.0);
+						editableCanvas.webGL.uniform1f(editableCanvas.webGL.getUniformLocation(editableCanvas.program, varName), this.value);
 						editableCanvas.redrawShader();
 					}
 				}
 				break;
 			case "vec3":
-				attributes = {id: varName, type: "color", style: "flex-grow: 1;"}
-				callback = function() {
-					const color = hexToRgb(this.value);
-					updateOrCreateEntry(uniformValues, varName, {htmlValue: this.value, shaderValue: [color.r, color.g, color.b]})
-					saveUniformValues();
-					if (editableCanvas.program) {
-						editableCanvas.webGL.uniform3f(editableCanvas.webGL.getUniformLocation(editableCanvas.program, varName), color.r, color.g, color.b);
-						editableCanvas.redrawShader();
+				if ("color" in hints) {
+					attributes = {id: varName, type: "color", style: "flex-grow: 1;"}
+					callback = function() {
+						const color = hexToRgb(this.value);
+						updateOrCreateEntry(uniformValues, varName, {htmlValue: this.value, shaderValue: [color.r, color.g, color.b]})
+						saveUniformValues();
+						if (editableCanvas.program) {
+							editableCanvas.webGL.uniform3f(editableCanvas.webGL.getUniformLocation(editableCanvas.program, varName), color.r, color.g, color.b);
+							editableCanvas.redrawShader();
+						}
 					}
 				}
 				break;
@@ -220,6 +254,7 @@ function createCustomUniformInput(source) {
 			uniformInput.oninput = callback;
 		}
 	}
+	return validSource;
 }
 
 function getUniformInputValue(uniformInput) {
@@ -256,7 +291,7 @@ function handleCompileErrors(canvas, source, errorLog) {
 	
 	if (!errorLog) return true;
 	
-	console.log("Canvas:", canvas, " Error:", errorLog);
+	//console.log("Canvas:", canvas, " Error:", errorLog);
 	
 	let errors = errorLog.split("\n");
 	for (let error of errors) {

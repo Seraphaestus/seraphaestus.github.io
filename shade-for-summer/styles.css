@@ -247,12 +247,45 @@ button {
 	justify-content: space-between;
 }
 
+/* Code uniforms */
+#uniform-area {
+	display: flex;
+	flex-wrap: wrap;
+	
+	z-index: 100;
+	position: relative;
+	
+	color: #444;
+	font-family: monospace;
+	font-size: 14px;
+	font-weight: bold;
+	
+	background: #f7dfa8;
+	border-radius: 6px;
+	padding: 2px;
+}
+
 .uniform-input {
 	display: flex; 
 	margin: 0.1em; 
 	margin-left: 0.4em;
 	text-transform: capitalize;
+	align-items: center;
 }
+.uniform-input input[type=color]{
+	background: none;
+	border: none;
+	padding: 0;
+	
+	block-size: 20px;
+	inline-size: auto;
+	aspect-ratio: 1.5;
+}
+.uniform-input input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+.uniform-input input[type=color]::-moz-color-swatch-wrapper    { padding: 0; }
+.uniform-input input[type=color]::-webkit-color-swatch { border-radius: 15px; }
+.uniform-input input[type=color]::-moz-color-swatch    { border-radius: 15px; }
+/**/
 
 .error {
 	position: sticky;
@@ -286,6 +319,24 @@ button {
 	padding: 10px;
 	tab-size: 4;
 	overflow-y: visible !important;
+}
+.codejar-linenumbers { /* Properties need to be !important to override the inline HTML styles automatically created by CodeJar */
+	width: 23px !important;
+	padding-left: 5px !important;
+	padding-right: 5px !important;
+	text-align: right !important;
+	color: #97a0df !important;
+	background: none !important;
+	
+	-webkit-mask-image: linear-gradient(0deg, transparent, transparent 10px, white 10px, white);
+	-mask-image: linear-gradient(0deg, transparent, transparent 10px, white 10px, white);
+	
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 
 /* Hyperlink text formatting */
@@ -454,6 +505,9 @@ div.collapsible {
 	text-align: center;
 	
 	display: none; /* hide by default */
+	
+	/* Override token-type -specific styling */
+	white-space: initial !important;
 }
 /* Needs to be without [data-before] or the insertionQ method doesn't pick it up */
 .token:hover:before {
