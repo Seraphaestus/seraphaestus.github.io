@@ -2,25 +2,32 @@ window.addEventListener("load", setup, {once: true});
 
 const tokenRegex = /\w+/g
 //const uniformRegex = /uniform\s+(?<type>\w+)\s+(?<name>\w+)/g	// Basic uniform regex without any type hints
-const uniformRegex = /uniform\s+(?<type>\w+)\s+(?<name>\w+)\s*(?<hints>(?:#(?:range\((?:[0-9]+\.?[0-9]*\s*,\s*){1,2}(?:[0-9]+\.?[0-9]*\s*)\)|color|ignore)\s*)*);/g
+const uniformRegex = /uniform\s+(?<type>\w+)\s+(?<name>\w+)\s*(?<hints>(?:#(?:range\((?:[0-9]+\.?[0-9]*\s*,\s*){1,2}(?:[0-9]+\.?[0-9]*\s*)\)|color|ignore|display)\s*)*);/g
 const error_dictionary = [
 	{from: "gl_FragColor", to: "COLOR"},
 	{from: "RATIO", to: "RATIO/UV"},
 	{from: "mix", to: "mix/lerp"},
 ]
 
-const fragmentSourcePrependLineCount = 10;
-const fragmentSourcePrepend =
-	"#define COLOR gl_FragColor\n" +
-	"#define UV RATIO\n" +
-	"#define PI  3.14159265359\n" +
-	"#define TAU 6.28318530718\n" +
-	"#define E   2.71828182846\n" +
-	"#define lerp mix\n" +
-	"precision mediump float;\n" +
-	"varying mediump vec2 RATIO;\n" +
-	"varying mediump vec2 COORD;\n" +
-	"uniform float TIME #ignore;\n";
+const rangeableUniformTypes = ["float", "vec2", "vec3", "vec4", "int", "ivec2", "ivec3", "ivec4"];
+
+const fragmentSourcePrepend = [
+	"#define COLOR gl_FragColor",
+	"#define UV RATIO",
+	"#define PI  3.14159265359",
+	"#define TAU 6.28318530718",
+	"#define E   2.71828182846",
+	"#define lerp mix",
+	"#define placeSticker place_sticker",
+	"#define place_sticker(texture, uv) COLOR = overlay(COLOR, texture2D(texture, uv))",
+	"precision mediump float;",
+	"varying mediump vec2 RATIO;",
+	"varying mediump vec2 COORD;",
+	"uniform float TIME #ignore;",
+	"vec4 overlay(vec4 color1, vec4 color2) { return mix(color1, color2, color2.a); }",
+];
+let fragmentSourcePrependLineCount;
+let fragmentSourcePrependString = "";
 
 let uniformValues = {}
 
@@ -39,13 +46,14 @@ const uvShader =
 	"	COLOR = vec4(RATIO, 1.0, 0.5);" +
 	"}";
 const targetImageShaders = {
-	"1": "const float plate_size = 0.95;const vec3 bg_color = vec3(122.0, 58.0, 51.0) / 255.0;const vec3 cake_color = vec3(238.0, 161.0, 73.0) / 255.0;const float cake_size = 0.7;const float cake_rotation = 0.125;const float cake_height = 0.2;const bool do_perspective = true;const float antialiasing = 0.1;float antialiased_step(float a, float b) {return smoothstep(b * (1.0 - antialiasing * 0.1), b * (1.0 + antialiasing * 0.1), a);}float in_circle(vec2 uv, vec2 center, float radius) {return antialiased_step(radius, distance(uv, center));}float in_segment(vec2 uv, vec2 center, float radius, float rotation, float size) {float angle = mod(atan(uv.y - center.y, uv.x - center.x) + rotation * TAU, TAU);return in_circle(uv, center, radius) * antialiased_step(angle, TAU / 6.0) * antialiased_step(TAU / 6.0 + TAU / 9.0, angle);}void main() {gl_FragColor.a = 1.0;vec2 uv = COORD;if (do_perspective) uv.y = (uv.y - 0.5) * 1.25 + 0.5;COLOR.rgb = mix(bg_color, vec3(1.0), in_circle(uv, vec2(0.5), plate_size / 2.0));gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.95), in_circle(uv, vec2(0.5), 0.8 * plate_size / 2.0));const float layers = 64.0;vec2 cake_offset = vec2(0.125);for (float i = 0.0; i < layers; i += 1.0) {gl_FragColor.rgb = mix(gl_FragColor.rgb, cake_color * 0.8, in_segment(uv + cake_offset, vec2(0.5, 0.5 + i * cake_height / layers), cake_size * plate_size / 2.0, cake_rotation, cake_size));}gl_FragColor.rgb = mix(gl_FragColor.rgb, cake_color, in_segment(uv + cake_offset, vec2(0.5, 0.5 + cake_height), cake_size * plate_size / 2.0, cake_rotation, cake_size));}"
+	"1": {stickers: [{name: "sticker", source: "stamp.png"}], targetCode: "const float plate_size = 0.95;const vec3 bg_color = vec3(122.0, 58.0, 51.0) / 255.0;const vec3 cake_color = vec3(238.0, 161.0, 73.0) / 255.0;const float cake_size = 0.7;const float cake_rotation = 0.125;const float cake_height = 0.2;const bool do_perspective = true;const float antialiasing = 0.1;float antialiased_step(float a, float b) {return smoothstep(b * (1.0 - antialiasing * 0.1), b * (1.0 + antialiasing * 0.1), a);}float in_circle(vec2 uv, vec2 center, float radius) {return antialiased_step(radius, distance(uv, center));}float in_segment(vec2 uv, vec2 center, float radius, float rotation, float size) {float angle = mod(atan(uv.y - center.y, uv.x - center.x) + rotation * TAU, TAU);return in_circle(uv, center, radius) * antialiased_step(angle, TAU / 6.0) * antialiased_step(TAU / 6.0 + TAU / 9.0, angle);}void main() {gl_FragColor.a = 1.0;vec2 uv = COORD;if (do_perspective) uv.y = (uv.y - 0.5) * 1.25 + 0.5;COLOR.rgb = mix(bg_color, vec3(1.0), in_circle(uv, vec2(0.5), plate_size / 2.0));gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.95), in_circle(uv, vec2(0.5), 0.8 * plate_size / 2.0));const float layers = 64.0;vec2 cake_offset = vec2(0.125);for (float i = 0.0; i < layers; i += 1.0) {gl_FragColor.rgb = mix(gl_FragColor.rgb, cake_color * 0.8, in_segment(uv + cake_offset, vec2(0.5, 0.5 + i * cake_height / layers), cake_size * plate_size / 2.0, cake_rotation, cake_size));}gl_FragColor.rgb = mix(gl_FragColor.rgb, cake_color, in_segment(uv + cake_offset, vec2(0.5, 0.5 + cake_height), cake_size * plate_size / 2.0, cake_rotation, cake_size));}"},
 }
 let targetImageShader = null
 
 function setup(event) {
 	"use strict";
 	
+	// Dynamically set page title depending on the day
 	const title = document.querySelector("head title");
 	const day = (new URLSearchParams(location.search)).get("day");
 	if (day in targetImageShaders) {
@@ -55,23 +63,40 @@ function setup(event) {
 		title.textContent = title.textContent.replace("Title", "Code Playground");
 	}
 	
+	//
+	for (let line of fragmentSourcePrepend) {
+		fragmentSourcePrependString += line + "\n";
+	}
+	fragmentSourcePrependLineCount = fragmentSourcePrepend.length;
+	
+	// Init canvases
 	const paragraph = document.querySelector("p");
 	editor = document.querySelector(".editor");
 	if (targetImageShader != null) {
 		targetCanvas = new ShadeableCanvas(document.querySelector("#target-canvas"), paragraph, false);
-		updateCanvas(targetCanvas, targetImageShader, false);
+		
+		let targetCode = ""
+		for (let sticker of targetImageShaders[day].stickers ?? []) {
+			fragmentSourcePrependString += `uniform sampler2D ${sticker.name} #display;\n`;
+			fragmentSourcePrependLineCount++;
+		}
+		targetCode += targetImageShaders[day].targetCode;
+		updateCanvas(targetCanvas, targetCode, false, false);
+		targetCanvas.setSamplerUniform("sticker", "stamp.png");
 	}
 	editableCanvas = new ShadeableCanvas(document.querySelector("#editable-canvas"), paragraph);
-	updateCanvas(editableCanvas, codeJar.toString(), false);
+	updateCanvas(editableCanvas, codeJar.toString(), true, false);
+	editableCanvas.setSamplerUniform("sticker", "stamp.png");
 	
 	// UpdateCanvas parses the source and creates uniform handles, we can now load values and set them
 	const loadedUniformValues = JSON.parse(localStorage.getItem('uniforms')) ?? {};
-	console.log("Loaded uniforms:", loadedUniformValues);
+	//console.log("Loaded uniforms:", loadedUniformValues);
 	for (let varName in loadedUniformValues) {
 		updateOrCreateEntry(uniformValues, varName, loadedUniformValues[varName]);
-		const uniformInput = document.querySelector(`#${varName}`)
-		if (uniformInput) {
-			setUniformInputValue(uniformInput, uniformValues[varName].htmlValue)
+		const uniformInput = document.querySelector(`[for=${varName}]`)
+		if (!uniformInput) continue;
+		for (let i = 0; i < Math.min(uniformInput.children.length, uniformValues[varName].htmlValues.length); i++) {
+			setInputValue(uniformInput.children[i], uniformValues[varName].htmlValues[i])
 		}
 	}
 	editableCanvas.redrawShader();
@@ -120,13 +145,13 @@ function update() {
 	editableCanvas.redrawShader();
 }
 
-function updateCanvas(canvas, source, check_similarity = true) {
-	let validSource = fragmentSourcePrepend + source;
-	validSource = createCustomUniformInput(validSource);
+function updateCanvas(canvas, source, createUniformInputs = false, check_similarity = true) {
+	let validSource = fragmentSourcePrependString + source;
+	validSource = createCustomUniformInput(validSource, createUniformInputs);
 	const errorLog = canvas.recreateShader(validSource);
 	const noErrors = handleCompileErrors(canvas, source, errorLog)
 	if (noErrors && check_similarity) {
-		//
+		// TODO
 	}
 }
 
@@ -150,17 +175,24 @@ function updateOrCreateEntry(object, key, toUpdate) {
 	}
 }
 
-function createCustomUniformInput(source) {
-	let validSource = source;
-	let indexOffset = 0;
-	for (let uniformInputContainer of document.querySelectorAll(".uniform-input")) {
-		const uniformInput = uniformInputContainer.firstElementChild;
-		
-		const varName = uniformInputContainer.getAttribute("id");
-		updateOrCreateEntry(uniformValues, varName, {htmlValue: getUniformInputValue(uniformInput)})
-		uniformInputContainer.remove();
+function createCustomUniformInput(source, createInputs = true) {
+	if (createInputs) {
+		// Remove existing HTML inputs
+		for (let uniformInputContainer of document.querySelectorAll(".uniform-input")) {
+			const varName = uniformInputContainer.getAttribute("for");
+			let htmlValues = []
+			for (let i = 0; i < uniformInputContainer.children.length; i++) {
+				const uniformInput = uniformInputContainer.children[i];
+				htmlValues.push(getInputValue(uniformInput));
+			}
+			updateOrCreateEntry(uniformValues, varName, {htmlValues: htmlValues});
+			uniformInputContainer.remove();
+		}
 	}
 	
+	const uniformArea = document.querySelector("#uniform-area");
+	let validSource = source;
+	let indexOffset = 0;
 	for (let uniform of source.matchAll(uniformRegex)) {
 		const type = uniform.groups.type;
 		const varName = uniform.groups.name;
@@ -186,102 +218,149 @@ function createCustomUniformInput(source) {
 			hints = {}
 		}
 		
-		if ("ignore" in hints) continue;
+		if ("ignore" in hints || !createInputs) continue;
 		
-		let callback = null;
-		let attributes = null;
-		switch (type) {
-			case "bool":
-				attributes = {id: varName, type: "checkbox"}
-				callback = function() {
-					updateOrCreateEntry(uniformValues, varName, {htmlValue: this.checked, shaderValue: [this.checked ? 1.0 : 0.0]})
-					saveUniformValues();
-					if (editableCanvas.program) {
-						editableCanvas.webGL.uniform1f(editableCanvas.webGL.getUniformLocation(editableCanvas.program, varName), this.checked ? 1.0 : 0.0);
-						editableCanvas.redrawShader();
+		// Add HTML inputs for uniform, e.g. 1 checkbox for a bool uniform, 2 ranges for a vec2 uniform, 1 color + 1 range for a vec4 #color uniform
+		if (type == "sampler2D" && "display" in hints) {
+			const attributes = {id: varName, type: "button", style: "min-width: 80px"};
+			const callback = function(inputs) {
+				const code = codeJar.toString();
+				const codeToInsert = `place_sticker(${varName}, COORD - vec2(0.5));`;
+				try {
+					const cursorPos = codeJar.save().start;
+					if (cursorPos < code.length) {
+						codeJar.updateCode(code.slice(0, cursorPos) + codeToInsert + code.slice(cursorPos));
+						return
 					}
-				}
-				break;
-			case "float":
-				let min = 0.0, max = 1.0, step = 0.01;
-				if ("range" in hints) {
-					min = hints.range[0];
-					max = hints.range[1];
-					if (hints.range.length > 2) step = hints.range[2];
-				}
-				attributes = {id: varName, type: "range", min: min, max: max, step: step, value: "0", style: "flex-grow: 1;"}
-				callback = function() {
-					updateOrCreateEntry(uniformValues, varName, {htmlValue: this.value, shaderValue: [this.value]})
-					saveUniformValues();
-					if (editableCanvas.program) {
-						editableCanvas.webGL.uniform1f(editableCanvas.webGL.getUniformLocation(editableCanvas.program, varName), this.value);
-						editableCanvas.redrawShader();
-					}
-				}
-				break;
-			case "vec3":
-				if ("color" in hints) {
-					attributes = {id: varName, type: "color", style: "flex-grow: 1;"}
-					callback = function() {
-						const color = hexToRgb(this.value);
-						updateOrCreateEntry(uniformValues, varName, {htmlValue: this.value, shaderValue: [color.r, color.g, color.b]})
-						saveUniformValues();
-						if (editableCanvas.program) {
-							editableCanvas.webGL.uniform3f(editableCanvas.webGL.getUniformLocation(editableCanvas.program, varName), color.r, color.g, color.b);
-							editableCanvas.redrawShader();
-						}
-					}
-				}
-				break;
-		}
-		if (callback) {
-			let div = document.createElement("label");
-			div.setAttribute("class", "uniform-input unselectable");
-			div.setAttribute("for", varName);
-			document.querySelector("#uniform-area").appendChild(div);
-			const formattedVarName = formatVarName(varName);
-			div.innerHTML = `${formattedVarName}:&nbsp;`;
-			let uniformInput = document.createElement("input");
-			for (let attributeID in attributes) {
-				uniformInput.setAttribute(attributeID, attributes[attributeID]);
+				} catch(e) {}
+				const mainMatch = code.match(/void\s+main\s*\(\s*\)\s*{/);
+				const cursorPos = mainMatch.index + mainMatch[0].length;
+				codeJar.updateCode(code.slice(0, cursorPos) + "\n\t" + codeToInsert + code.slice(cursorPos));
 			}
-			div.appendChild(uniformInput);
-			
-			if (varName in uniformValues) {
-				setUniformInputValue(uniformInput, uniformValues[varName].htmlValue)
+			createUniformInput(uniformArea, varName, [attributes], callback);
+		} else if (type == "bool") {
+			const attributes = {id: varName, type: "checkbox", style: "scale: 1.2;"};
+			const callback = function(inputs) {
+				const checked = inputs[0].checked;
+				updateOrCreateEntry(uniformValues, varName, {htmlValues: [checked], shaderValue: [checked ? 1.0 : 0.0], isFloat: true})
+				saveUniformValues();
+				if (editableCanvas.program) {
+					editableCanvas.webGL.uniform1f(editableCanvas.webGL.getUniformLocation(editableCanvas.program, varName), checked ? 1.0 : 0.0);
+					editableCanvas.redrawShader();
+				}
+			}
+			createUniformInput(uniformArea, varName, [attributes], callback);
+		} else if (rangeableUniformTypes.includes(type)) {
+			let min = 0.0, max = 1.0, step = 0.01;
+			if ("range" in hints) {
+				min = hints.range[0];
+				max = hints.range[1];
+				if (hints.range.length > 2) step = hints.range[2];
 			}
 			
-			uniformInput.oninput = callback;
+			let isFloat = (type.slice(0, 1) != "i");
+			if (!isFloat) step = Math.ceil(step);
+			let size = isNaN(type.slice(-1)) ? 1 : parseInt(type.slice(-1));
+			let attributesArray = []
+			if (size >= 3 && "color" in hints) {
+				attributesArray.push({id: varName + ".xyz", type: "color", style: "flex-grow: 1;"});
+				if (size == 4) attributesArray.push({id: varName + ".w", type: "range", min: min, max: max, step: step, value: "0", style: "flex-grow: 1; max-width: 100px"});
+			} else {
+				const width = 155 - 25 * size;
+				for (let i = 1; i <= size; i++) {
+					let component = (i == 1) ? "x" : (i == 2) ? "y" : (i == 3) ? "z" : "w";
+					attributesArray.push({id: `${varName}.${component}`, type: "range", min: min, max: max, step: step, value: "0", style: `flex-grow: 1; max-width: ${width}px`});
+				}
+			}
+			const callback = function(inputs) {
+				let components = []
+				if (inputs[0].type == "color") {
+					const color = hexToRgb(inputs[0].value);
+					components.push(color.r);
+					components.push(color.g);
+					components.push(color.b);
+					if (inputs.length > 1) components.push(inputs[1].value);
+				} else {
+					components = inputs.map(i => i.value);
+				}
+				
+				updateOrCreateEntry(uniformValues, varName, {htmlValues: inputs.map(i => i.value), shaderValue: components, isFloat: isFloat})
+				saveUniformValues();
+				if (editableCanvas.program) {
+					editableCanvas.setVectorUniform(varName, components, isFloat);
+					editableCanvas.redrawShader();
+				}
+			}
+			createUniformInput(uniformArea, varName, attributesArray, callback);
 		}
 	}
 	return validSource;
 }
 
-function getUniformInputValue(uniformInput) {
-	if (uniformInput.getAttribute("type") == "checkbox") 
-		return uniformInput.checked
-	return uniformInput.value
+function createUniformInput(uniformArea, varName, attributesArray, callback) {
+	let div = document.createElement("label");
+	div.setAttribute("class", "uniform-input unselectable");
+	div.setAttribute("for", varName);
+	uniformArea.appendChild(div);
+	const formattedVarName = formatVarName(varName);
+	div.innerHTML = `${formattedVarName}:&nbsp;`;
+	
+	let uniformInputs = []
+	for (let inputID = 0; inputID < attributesArray.length; inputID++) {
+		const attributes = attributesArray[inputID];
+		let input = document.createElement("input");
+		for (let attributeID in attributes) {
+			input.setAttribute(attributeID, attributes[attributeID]);
+		}
+		div.appendChild(input);
+		uniformInputs.push(input);
+		
+		if (varName in uniformValues && uniformValues[varName].htmlValues) {
+			setInputValue(input, uniformValues[varName].htmlValues[inputID])
+		}
+	}
+	
+	const boundCallback = callback.bind(null, uniformInputs);
+	for (let input of uniformInputs) {
+		if (input.type == "button") {
+			input.onclick = boundCallback;
+		} else {
+			input.oninput = boundCallback;
+		}
+	}
 }
 
-function setUniformInputValue(uniformInput, value) {
-	if (uniformInput.getAttribute("type") == "checkbox") {
-		uniformInput.checked = value;
+function getInputValue(input) {
+	if (input.getAttribute("type") == "checkbox") 
+		return input.checked
+	return input.value
+}
+
+function setInputValue(input, value) {
+	if (input.getAttribute("type") == "checkbox") {
+		input.checked = value;
 	} else {
-		uniformInput.value = value;
+		input.value = value;
 	}
 }
 
 function saveUniformValues() {
 	// First remove any uniforms which are set to default values
 	let strippedUniformValues = {}
-	for (varName in uniformValues) {
-		let v = uniformValues[varName].htmlValue;
-		if (v == "0" || v == "#000000" || v == "false") continue;
-		
+	for (let varName in uniformValues) {
+		if (uniformHasDefaultValue(varName)) continue;
 		strippedUniformValues[varName] = uniformValues[varName];
 	}
 	//
 	localStorage.setItem('uniforms', JSON.stringify(strippedUniformValues));
+}
+
+function uniformHasDefaultValue(varName) {
+	for (let v of uniformValues[varName].htmlValues) {
+		if (v == "0" || v == "#000000" || v == "false") continue;
+		return false;
+	}
+	return true;
 }
 
 function handleCompileErrors(canvas, source, errorLog) {

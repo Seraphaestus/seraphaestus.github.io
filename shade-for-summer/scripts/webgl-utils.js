@@ -38,15 +38,27 @@ const WebGLUtils = {
 		}
 	},
 	
-	setUniforms: function(webGL, program, uniforms) {
-		for (const [name, uniform] of Object.entries(uniforms)) {
-			const uniformLocation = webGL.getUniformLocation(program, name);
-			switch (uniform.length) {
-				case 1: webGL.uniform1f(uniformLocation, uniform); break;
-				case 2: webGL.uniform2fv(uniformLocation, uniform); break;
-				case 3: webGL.uniform3fv(uniformLocation, uniform); break;
-				case 4: webGL.uniform4fv(uniformLocation, uniform); break;
-			}
-		}
+	// https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Using_textures_in_WebGL
+	loadTexture: function(webGL, url) {
+		const texture = webGL.createTexture();
+		webGL.bindTexture(webGL.TEXTURE_2D, texture);
+		
+		const level = 0, width = 1, height = 1, border = 0;
+		const internalFormat = webGL.RGBA, srcFormat = webGL.RGBA;
+		const srcType = webGL.UNSIGNED_BYTE;
+		const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
+		
+		webGL.texImage2D(webGL.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
+		
+		const image = new Image();
+		image.onload = () => {
+			webGL.bindTexture(webGL.TEXTURE_2D, texture);
+			webGL.texImage2D(webGL.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
+			
+			// TODO: add alternative handling for non-pow2 images
+			webGL.generateMipmap(webGL.TEXTURE_2D);
+		};
+		image.src = url;
+		return texture;
 	},
 }

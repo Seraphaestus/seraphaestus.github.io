@@ -55,24 +55,22 @@ class ShadeableCanvas {
 		WebGLUtils.setBuffersAndAttributes(this.webGL, this.program, WebGLUtils.createBuffersForScreenQuad(this.webGL))
 		
 		// Uniforms
-		let uniforms = {TIME: [0.0]}
+		this.setVectorUniform("TIME", [0.0]);
 		for (let varName in uniformValues) {
 			if (!uniformValues[varName].shaderValue) continue;
-			uniforms[varName] = uniformValues[varName].shaderValue;
+			this.setVectorUniform(varName, uniformValues[varName].shaderValue, uniformValues[varName].isFloat ?? true);
 		}
-		WebGLUtils.setUniforms(this.webGL, this.program, uniforms);
 		
 		this.webGL.drawArrays(this.webGL.TRIANGLE_STRIP, 0, 4);
 	}
 	
 	redrawShader() {
 		// Uniforms
-		let uniforms = {TIME: [time]}
+		this.setVectorUniform("TIME", [time]);
 		for (let varName in uniformValues) {
 			if (!uniformValues[varName].shaderValue) continue;
-			uniforms[varName] = uniformValues[varName].shaderValue;
+			this.setVectorUniform(varName, uniformValues[varName].shaderValue, uniformValues[varName].isFloat ?? true);
 		}
-		WebGLUtils.setUniforms(this.webGL, this.program, uniforms);
 		
 		this.webGL.drawArrays(this.webGL.TRIANGLE_STRIP, 0, 4);
 	}
@@ -95,5 +93,36 @@ class ShadeableCanvas {
 		this.webGL.detachShader(this.program, fragmentShader);
 		this.webGL.detachShader(this.program, this.vertexShader);
 		this.webGL.deleteShader(fragmentShader);
+	}
+	
+	setSamplerUniform(varName, textureUrl) {
+		console.log(this);
+		const uniformLocation = this.webGL.getUniformLocation(this.program, varName);
+		
+		// Load texture
+		const texture = WebGLUtils.loadTexture(this.webGL, textureUrl);
+		// Flip image pixels into the bottom-to-top order that WebGL expects.
+		this.webGL.pixelStorei(this.webGL.UNPACK_FLIP_Y_WEBGL, true);
+		
+		this.webGL.uniform1i(uniformLocation, texture);
+	}
+	
+	setVectorUniform(varName, components, isFloat = true) {
+		const uniformLocation = this.webGL.getUniformLocation(this.program, varName);
+		if (isFloat) {
+			switch (components.length) {
+				case 1: this.webGL.uniform1fv(uniformLocation, components); break;
+				case 2: this.webGL.uniform2fv(uniformLocation, components); break;
+				case 3: this.webGL.uniform3fv(uniformLocation, components); break;
+				case 4: this.webGL.uniform4fv(uniformLocation, components); break;
+			}
+		} else {
+			switch (components.length) {
+				case 1: this.webGL.uniform1iv(uniformLocation, components); break;
+				case 2: this.webGL.uniform2iv(uniformLocation, components); break;
+				case 3: this.webGL.uniform3iv(uniformLocation, components); break;
+				case 4: this.webGL.uniform4iv(uniformLocation, components); break;
+			}
+		}
 	}
 }

@@ -268,9 +268,14 @@ button {
 .uniform-input {
 	display: flex; 
 	margin: 0.1em; 
-	margin-left: 0.4em;
 	text-transform: capitalize;
 	align-items: center;
+	
+	/* Seperators between uniforms */
+	padding-left: 0.4em;
+	padding-right: 1em;
+	margin-right: 1em;
+	box-shadow: 3px 0 0 #dfb38d;
 }
 .uniform-input input[type=color]{
 	background: none;

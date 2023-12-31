@@ -133,6 +133,10 @@ function getCodeTooltip(token) {
 			case "length": return "Calculates the length of a vector\nlength(v)  ≡  sqrt(v.x * v.x + v.y * v.y)";
 			case "distance": return "Calculates the distance between two vectors\ndistance(a, b)  ≡  length(b - a)";
 			case "dot": return "Calculates the dot product between two vectors\nThe dot product is a measure of the angle between two vectors\nPerpendicular vectors -> 0.0\nCodirectional vectors -> length(a) * length(b)\ndot(a, b)  ≡  a.x * b.x + a.y * b.y + ...";
+			// Custom functions
+			case "placeSticker":
+			case "place_sticker": return "Places the specified sticker at the given uv position\nplace_sticker(sticker, uv);  ≡  placeSticker(sticker, uv);  ≡  COLOR = overlay(COLOR, texture2D(sticker, uv));";
+			case "overlay": return "Returns the result of drawing the 2nd RGBA color over the 1st\noverlay(color1, color2)  ≡  mix(color1, color2, color2.a)";
 		}
 	} else if (token.classList.contains("operator")) {
 		// Handle double operators
