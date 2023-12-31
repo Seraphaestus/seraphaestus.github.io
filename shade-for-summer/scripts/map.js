@@ -37,5 +37,4 @@ function copyDayList() {
 }
 
 function playCutscene() {
-	console.log("Test :)")
 }

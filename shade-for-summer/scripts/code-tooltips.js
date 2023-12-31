@@ -142,7 +142,6 @@ function getCodeTooltip(token) {
 		// Handle double operators
 		let operator = token.innerText;
 		const prevToken = document.evaluate("preceding-sibling::span[contains(@class, 'token')][1]", token, null, XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue
-		console.log(prevToken)
 		if (prevToken.classList.contains("operator") && (token.innerText == "=" || token.innerText == prevToken.innerText)) {
 			operator = prevToken.innerText + token.innerText;
 		} else {

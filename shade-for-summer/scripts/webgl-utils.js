@@ -55,8 +55,10 @@ const WebGLUtils = {
 			webGL.bindTexture(webGL.TEXTURE_2D, texture);
 			webGL.texImage2D(webGL.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
 			
-			// TODO: add alternative handling for non-pow2 images
-			webGL.generateMipmap(webGL.TEXTURE_2D);
+			webGL.texParameteri(webGL.TEXTURE_2D, webGL.TEXTURE_MIN_FILTER, webGL.LINEAR); // or webGL.NEAREST
+			// Prevents uv coordinate wrapping (repeating)
+			webGL.texParameteri(webGL.TEXTURE_2D, webGL.TEXTURE_WRAP_S, webGL.CLAMP_TO_EDGE);
+			webGL.texParameteri(webGL.TEXTURE_2D, webGL.TEXTURE_WRAP_T, webGL.CLAMP_TO_EDGE);
 		};
 		image.src = url;
 		return texture;
