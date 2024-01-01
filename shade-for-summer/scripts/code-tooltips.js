@@ -108,7 +108,8 @@ function getCodeTooltip(token) {
 		switch (token.innerText) {
 			case "main": return "This is the main function, which will be automatically run for each pixel of the canvas";
 			// Maths functions
-			case "step": return "Discriminates a boundary.\nCan be thought of returning if a and b are in sorted order\nx = step(a, b);  ≡  if (a <= b) { x = 1.0; } else { x = 0.0; }";
+			case "step": return "Discriminates a boundary.\nCan be thought of returning if a and b are in sorted order\nx = step(a, b);  ≡  if (a <= b) { x = 1.0; } else { x = 0.0; }\nSee also steps(a, b, c)";
+			case "steps": return "Discrimates an upper and lower boundary.\nCan be thought of returning if (a and b) and (b and c) are in sorted order\nsteps(a, b, c)  ≡  step(a, b) * step(b, c)";
 			case "mix": 
 			case "lerp": return "Linearly interpolates between two inputs\ne.g. mix(a, b, 0.5) returns 50% of the way from a to b\nmix(a, b, t)  ≡  lerp(a, b, t)  ≡  a + t * (b - a)";
 			case "min": return "Returns the minimum of two inputs\nx = min(a, b);  ≡  if (a < b) { x = a; } else { x = b; }";

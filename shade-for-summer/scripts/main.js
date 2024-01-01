@@ -2,7 +2,7 @@ window.addEventListener("load", setup, {once: true});
 
 const tokenRegex = /\w+/g
 //const uniformRegex = /uniform\s+(?<type>\w+)\s+(?<name>\w+)/g	// Basic uniform regex without any type hints
-const uniformRegex = /uniform\s+(?<type>\w+)\s+(?<name>\w+)\s*(?<hints>(?:#(?:range\((?:[0-9]+\.?[0-9]*\s*,\s*){1,2}(?:[0-9]+\.?[0-9]*\s*)\)|color|ignore|display)\s*)*);/g
+const uniformRegex = /uniform\s+(?<type>\w+)\s+(?<name>\w+)\s*(?<hints>(?:#(?:range\((?:-?\s*[0-9]+\.?[0-9]*\s*,\s*){1,2}(?:-?\s*[0-9]+\.?[0-9]*\s*)\)|color|ignore|display)\s*)*);/g
 const error_dictionary = [
 	{from: "gl_FragColor", to: "COLOR"},
 	{from: "RATIO", to: "RATIO/UV"},
@@ -12,19 +12,21 @@ const error_dictionary = [
 const rangeableUniformTypes = ["float", "vec2", "vec3", "vec4", "int", "ivec2", "ivec3", "ivec4"];
 
 const fragmentSourcePrepend = [
+	"precision mediump float;",
 	"#define COLOR gl_FragColor",
 	"#define UV RATIO",
 	"#define PI  3.14159265359",
 	"#define TAU 6.28318530718",
 	"#define E   2.71828182846",
 	"#define lerp mix",
+	"#define steps(a, b, c) step(a, b) * step(b, c)",
 	"#define placeSticker place_sticker",
-	"#define place_sticker(texture, uv) COLOR = overlay(COLOR, texture2D(texture, uv))",
-	"precision mediump float;",
+	"#define place_sticker(texture, uv) COLOR = overlay(COLOR, texture2D(texture, uv), steps(0.0, uv.x, 1.0) * steps(0.0, uv.y, 1.0))",
 	"varying mediump vec2 RATIO;",
 	"varying mediump vec2 COORD;",
 	"uniform float TIME #ignore;",
 	"vec4 overlay(vec4 color1, vec4 color2) { return mix(color1, color2, color2.a); }",
+	"vec4 overlay(vec4 color1, vec4 color2, float m) { return mix(color1, color2, color2.a * m); }",
 ];
 let fragmentSourcePrependLineCount;
 let fragmentSourcePrependString = "";

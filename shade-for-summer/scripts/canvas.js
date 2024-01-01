@@ -96,7 +96,6 @@ class ShadeableCanvas {
 	}
 	
 	setSamplerUniform(varName, textureUrl) {
-		console.log(this);
 		const uniformLocation = this.webGL.getUniformLocation(this.program, varName);
 		
 		// Load texture
