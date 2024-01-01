@@ -227,7 +227,7 @@ function createCustomUniformInput(source, createInputs = true) {
 			const attributes = {id: varName, type: "button", style: "min-width: 80px"};
 			const callback = function(inputs) {
 				const code = codeJar.toString();
-				const codeToInsert = `place_sticker(${varName}, COORD - vec2(0.5));`;
+				const codeToInsert = `place_sticker(${varName}, COORD);`;
 				try {
 					const cursorPos = codeJar.save().start;
 					if (cursorPos < code.length) {
