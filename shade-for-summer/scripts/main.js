@@ -21,7 +21,7 @@ const fragmentSourcePrepend = [
 	"#define lerp mix",
 	"#define steps(a, b, c) step(a, b) * step(b, c)",
 	"#define placeSticker place_sticker",
-	"#define place_sticker(texture, uv) COLOR = overlay(COLOR, texture2D(texture, uv), steps(0.0, uv.x, 1.0) * steps(0.0, uv.y, 1.0))",
+	"#define place_sticker(texture, uv) COLOR = overlay(COLOR, texture2D(texture, uv), steps(0.0, (uv).x, 1.0) * steps(0.0, (uv).y, 1.0))",
 	"varying mediump vec2 RATIO;",
 	"varying mediump vec2 COORD;",
 	"uniform float TIME #ignore;",
