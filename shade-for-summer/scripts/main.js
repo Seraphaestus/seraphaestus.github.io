@@ -2,7 +2,10 @@ window.addEventListener("load", setup, {once: true});
 
 const tokenRegex = /\w+/g
 //const uniformRegex = /uniform\s+(?<type>\w+)\s+(?<name>\w+)/g	// Basic uniform regex without any type hints
-const uniformRegex = /uniform\s+(?<type>\w+)\s+(?<name>\w+)\s*(?<hints>(?:#(?:range\((?:-?\s*[0-9]+\.?[0-9]*\s*,\s*){1,2}(?:-?\s*[0-9]+\.?[0-9]*\s*)\)|color|ignore|display)\s*)*);/g
+const floatRegex = String.raw`-?\s*(?:[0-9]+\.?[0-9]*|[0-9]*\.[0-9]+)\s*`;
+const rangeHintRegex = String.raw`range\((?:${floatRegex},\s*){1,2}(?:${floatRegex})\)`
+const uniformRegex = new RegExp(String.raw`uniform\s+(?<type>\w+)\s+(?<name>\w+)\s*(?<hints>(?:#(?:${rangeHintRegex}|color|ignore|display)\s*)*);`, "g");
+
 const error_dictionary = [
 	{from: "gl_FragColor", to: "COLOR"},
 	{from: "RATIO", to: "RATIO/UV"},
@@ -38,10 +41,10 @@ let editor
 let targetCanvas
 let editableCanvas
 
-let doUpdateTime = true
 let updateTimer
 const initialTime = Date.now()
 let time
+let codeUsesTime = false
 
 const uvShader =
 	"void main() {" +
@@ -54,6 +57,8 @@ let targetImageShader = null
 
 function setup(event) {
 	"use strict";
+	
+	setupUniformSetterDialog();
 	
 	// Dynamically set page title depending on the day
 	const title = document.querySelector("head title");
@@ -74,7 +79,7 @@ function setup(event) {
 	// Init canvases
 	const paragraph = document.querySelector("p");
 	editor = document.querySelector(".editor");
-	const stickers = targetImageShaders[day].stickers ?? {};
+	const stickers = targetImageShaders[day]?.stickers ?? {};
 	if (targetImageShader != null) {
 		targetCanvas = new ShadeableCanvas(document.querySelector("#target-canvas"), paragraph, false);
 		
@@ -91,7 +96,7 @@ function setup(event) {
 		}
 	}
 	editableCanvas = new ShadeableCanvas(document.querySelector("#editable-canvas"), paragraph);
-	updateCanvas(editableCanvas, codeJar.toString(), true, false);
+	onCodeEdited(codeJar.toString(), false);
 	for (let stickerName in stickers) {
 		editableCanvas.setSamplerUniform(stickerName, stickers[stickerName]);
 	}
@@ -103,8 +108,9 @@ function setup(event) {
 		updateOrCreateEntry(uniformValues, varName, loadedUniformValues[varName]);
 		const uniformInput = document.querySelector(`[for=${varName}]`)
 		if (!uniformInput) continue;
-		for (let i = 0; i < Math.min(uniformInput.children.length, uniformValues[varName].htmlValues.length); i++) {
-			setInputValue(uniformInput.children[i], uniformValues[varName].htmlValues[i])
+		const uniformInputs = uniformInput.querySelectorAll("input");
+		for (let i = 0; i < Math.min(uniformInputs.length, uniformValues[varName].htmlValues.length); i++) {
+			setInputValue(uniformInputs[i], uniformValues[varName].htmlValues[i])
 		}
 	}
 	editableCanvas.redrawShader();
@@ -147,10 +153,18 @@ function setup(event) {
 }
 
 function update() {
-	if (!editableCanvas.program || !doUpdateTime) return
+	if (!editableCanvas.program || !codeUsesTime) return;
 	
 	time = (Date.now() - initialTime) / 1000.0;
 	editableCanvas.redrawShader();
+}
+
+function onCodeEdited(code, saveCode = true) {
+	codeUsesTime = code.indexOf("TIME") != -1;
+	updateCanvas(editableCanvas, code, true, false);
+	if (saveCode) {
+		localStorage.setItem('code', code);
+	}
 }
 
 function updateCanvas(canvas, source, createUniformInputs = false, check_similarity = true) {
@@ -189,8 +203,9 @@ function createCustomUniformInput(source, createInputs = true) {
 		for (let uniformInputContainer of document.querySelectorAll(".uniform-input")) {
 			const varName = uniformInputContainer.getAttribute("for");
 			let htmlValues = []
-			for (let i = 0; i < uniformInputContainer.children.length; i++) {
-				const uniformInput = uniformInputContainer.children[i];
+			const uniformInputs = uniformInputContainer.querySelectorAll("input");
+			for (let i = 0; i < uniformInputs.length; i++) {
+				const uniformInput = uniformInputs[i];
 				htmlValues.push(getInputValue(uniformInput));
 			}
 			updateOrCreateEntry(uniformValues, varName, {htmlValues: htmlValues});
@@ -314,26 +329,52 @@ function createUniformInput(uniformArea, varName, attributesArray, callback) {
 	div.innerHTML = `${formattedVarName}:&nbsp;`;
 	
 	let uniformInputs = []
+	let spanCallbacks = {}
 	for (let inputID = 0; inputID < attributesArray.length; inputID++) {
 		const attributes = attributesArray[inputID];
-		let input = document.createElement("input");
+		const input = document.createElement("input");
 		for (let attributeID in attributes) {
 			input.setAttribute(attributeID, attributes[attributeID]);
 		}
 		div.appendChild(input);
 		uniformInputs.push(input);
 		
-		if (varName in uniformValues && uniformValues[varName].htmlValues) {
-			setInputValue(input, uniformValues[varName].htmlValues[inputID])
+		if (attributesArray.length > 1 && input.type == "range") {
+			const label = document.createElement("span");
+			div.appendChild(label);
+			label.className = "unselectable overlay thumb-label";
+			label.innerHTML = attributes.id.split(".")[1];
+			if (label.innerHTML == "w" && attributesArray[inputID - 1]?.type == "color") label.innerHTML = "a"
+			const labelPadding = 8;
+			spanCallbacks[input] = (input) => {
+				if (input?.parentElement?.parentElement == null) return;
+				const leftMargin = input.parentElement.parentElement.getBoundingClientRect().left;
+				const left = input.getBoundingClientRect().left + labelPadding;
+				const right = input.getBoundingClientRect().right - labelPadding;
+				const t = (input.value - input.min) / (input.max - input.min);
+				input.nextSibling.style.left = `${left + (right - left) * t - leftMargin}px`;
+			};
 		}
 	}
 	
 	const boundCallback = callback.bind(null, uniformInputs);
-	for (let input of uniformInputs) {
+	for (let inputID = 0; inputID < uniformInputs.length; inputID++) {
+		const input = uniformInputs[inputID];
 		if (input.type == "button") {
 			input.onclick = boundCallback;
 		} else {
-			input.oninput = boundCallback;
+			if (spanCallbacks[input]) {
+				input.oninput = (spanOnly = false) => {
+					spanCallbacks[input](input);
+					if (spanOnly != true) boundCallback();
+				};
+			} else {
+				input.oninput = boundCallback;
+			}
+		}
+		
+		if (varName in uniformValues && uniformValues[varName].htmlValues) {
+			setInputValue(input, uniformValues[varName].htmlValues[inputID])
 		}
 	}
 }
@@ -349,6 +390,7 @@ function setInputValue(input, value) {
 		input.checked = value;
 	} else {
 		input.value = value;
+		if (input.oninput) input.oninput(true);
 	}
 }
 
@@ -371,6 +413,102 @@ function uniformHasDefaultValue(varName) {
 	return true;
 }
 
+
+function setupUniformSetterDialog() {
+	const setterDialog = document.getElementById("setter-dialog");
+	let setterCallbacks;
+	document.oncontextmenu = (event) => {
+		const target = event.target;
+		
+		if (setterDialog.open && (!target.closest("form"))) {
+			event.preventDefault();
+			setterDialog.close();
+			return;
+		}
+		
+		if (target.nodeName == "INPUT" && target.type == "range") {
+			event.preventDefault();
+			const form = setterDialog.querySelector("#inputs");
+			const formInputs = target.parentElement.querySelectorAll("input");
+			const varName = target.parentElement.getAttribute("for");
+			setterCallbacks = []
+			form.innerHTML = "";
+			
+			const groupLabel = document.createElement("label");
+			groupLabel.className = "unselectable";
+			groupLabel.style = "position:relative; top:-10px;";
+			groupLabel.innerHTML = varName + ":";
+			form.appendChild(groupLabel);
+			
+			for (let i = 0; i < formInputs.length; i++) {
+				const componentInput = formInputs[i];
+				if (componentInput.type == "range") {
+					createUniformFormInput(form, formInputs.length, setterCallbacks, varName, componentInput, i, target);
+				}
+			}
+			setterDialog.showModal();
+		}
+	};
+	document.addEventListener("click", (event) => {
+		if (setterDialog.open && !inRect(setterDialog.getBoundingClientRect(), {x: event.x, y: event.y})) {
+			setterDialog.close();
+		}
+	});
+	setterDialog.querySelector("button[type=reset]").addEventListener("click", () => {
+		setterDialog.close();
+	});
+	setterDialog.addEventListener("submit", () => {
+		setterCallbacks.forEach(f => f());
+	});
+}
+
+function createUniformFormInput(formInputs, numInputs, setterCallbacks, varName, uniformInput, i, target) {
+	let component
+	if (numInputs == 1) {
+		component = varName;
+	} else {
+		const isAlpha = (component == "w" && target.parentElement.children[i - 1]?.getAttribute("type") == "color");
+		component = isAlpha ? "alpha" : uniformInput.id.split(".")[1];
+	}
+	
+	const group = document.createElement("div");
+	formInputs.appendChild(group);
+	
+	if (numInputs > 1) {
+		const label = document.createElement("label");
+		label.className = "unselectable";
+		label.innerHTML = component + ":&nbsp;";
+		group.appendChild(label);
+	}
+	
+	const formInput = document.createElement("input");
+	formInput.type = "text";
+	formInput.pattern = floatRegex;
+	formInput.value = uniformValues[varName]?.htmlValues[i] ?? 0;
+	// Set the cursor position of autofocused form to the end of the value
+	formInput.onfocus = () => {var temp_value=this.value; this.value=''; this.value=temp_value;} // https://stackoverflow.com/questions/17780756/put-cursor-at-end-of-text-inputs-value
+	// Add functionality to increment/decrement on arrow keys, by whatever precision the number is already at
+	formInput.onkeydown = (event, test) => {
+		const precision = (event.target.value.indexOf(".") == -1) ? 0 : `${parseInt(event.target.value.split(".")[1])}`.length;
+		const delta = (precision == 0) ? 1 : parseFloat(`0.${"0".repeat(precision - 1)}1`);
+		if (event.keyCode == 38) {
+			event.preventDefault();
+			event.target.value = (parseFloat(event.target.value) + delta).toFixed(precision);
+		} else if (event.keyCode == 40) {
+			event.preventDefault();
+			event.target.value = (parseFloat(event.target.value) - delta).toFixed(precision);
+		}
+	};
+	if (uniformInput == target) formInput.autofocus = true;
+	group.appendChild(formInput);
+	
+	setterCallbacks.push(() => {
+		uniformInput.value = parseFloat(formInput.value);
+		uniformInput.oninput();
+	});
+}
+
+
 function handleCompileErrors(canvas, source, errorLog) {
 	for (let errorHTML of document.querySelectorAll(".error")) {
 		errorHTML.remove()
@@ -388,7 +526,7 @@ function handleCompileErrors(canvas, source, errorLog) {
 		message = replaceTokensFromDictionary(message, error_dictionary);
 		message = `Line ${lineNumber}: ${message}`;
 		// position:absolute; top:${2.2 + 1.075 * (lineNumber + 1)}em; left:37em; 
-		editor.insertAdjacentHTML('afterend', `<span class="error unselectable overlay">${message}</span>`);
+		editor.insertAdjacentHTML('afterend', `<div class="error unselectable overlay">${message}</div>`);
 		return false;
 	}
 	return true;
@@ -427,4 +565,8 @@ function hexToRgb(hex) {
     g: parseInt(result[2], 16) / 256.0,
     b: parseInt(result[3], 16) / 256.0
   } : null;
+}
+
+function inRect(rect, p) {
+	return p.x >= rect.left && p.x <= rect.right && p.y >= rect.top && p.y <= rect.bottom;
 }

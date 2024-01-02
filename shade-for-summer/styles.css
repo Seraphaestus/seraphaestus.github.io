@@ -260,9 +260,11 @@ button {
 	font-size: 14px;
 	font-weight: bold;
 	
-	background: #f7dfa8;
+	background-color: #f7dfa8;
 	border-radius: 6px;
 	padding: 2px;
+	
+	accent-color: #d31e1e; /* Changes color of range sliders, etc. */
 }
 
 .uniform-input {
@@ -290,6 +292,14 @@ button {
 .uniform-input input[type=color]::-moz-color-swatch-wrapper    { padding: 0; }
 .uniform-input input[type=color]::-webkit-color-swatch { border-radius: 15px; }
 .uniform-input input[type=color]::-moz-color-swatch    { border-radius: 15px; }
+
+.thumb-label {
+	position: absolute;
+	transform: translateX(-50%);
+	transform-origin: left;
+	color: #e8e8e8;
+	scale: 0.8;
+}
 /**/
 
 .error {
@@ -307,7 +317,7 @@ button {
 
 /* Code editor formatting */
 .editor {
-	color: #fff;
+	color: #eee;
 	background: #282a36;
 	border-radius: 6px;
 	box-shadow: 
@@ -324,6 +334,10 @@ button {
 	padding: 10px;
 	tab-size: 4;
 	overflow-y: visible !important;
+}
+.codejar-wrap {
+	position: relative;
+	z-index: 100; /* Ensure tooltips are always on top */
 }
 .codejar-linenumbers { /* Properties need to be !important to override the inline HTML styles automatically created by CodeJar */
 	width: 23px !important;
@@ -343,6 +357,30 @@ button {
 	-ms-user-select: none;
 	user-select: none;
 }
+
+/* Syntax highlighting */
+/*   Neutral colors */
+.token.punctuation {
+	opacity: 1; /* Undo the dumb hacky shortcut that ends up ruining any child elements */
+	color: #b3b4b8;
+}
+.token.operator, .token.preprocessor, .token.uniform_hint { color: #bbb; }
+.token.comment { color: #7e7e7e; }
+.token.reserved { color: #f00; font-weight: bold; }
+/**/
+.token.return_type, .token.keyword { color: #ff6f6f; }
+.token.shader_input { color: #ffc273; }
+.token.keyword_main, .token.type { color: #fb63a1; }
+.token.shader_output { color: #ffe379; }
+.token.constructor_type { color:  #88eb71; }
+.token.constant { color: #35d46f; }
+.token.number { color: #6effb7; }
+.token.function { color: #64c4ff; }
+/**/
+.editor>* {
+	filter: none;
+}
+
 
 /* Hyperlink text formatting */
 a {
@@ -567,6 +605,9 @@ div.collapsible {
 	}
 	.switch span { background-color: #3b3b3b; }
 	.switch span:before { background-color: #99c8ff; }
+	
+	#uniform-area { background-color: #66352b; }
+	.uniform-input { box-shadow: 3px 0 0 #8d4c3e; }
 	
 	.graph-section { background-color: #000; }
 	.graph-title { background-color: #282a36; }

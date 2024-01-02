@@ -1,5 +1,7 @@
 let highlighterGrammarModified = false
 
+const typeRegex = String.raw`(?:float|double|int|bool|d?mat[234](?:x[234])?|[ibdu]?vec[234]|uint|[iu]?sampler[123]D|[iu]?samplerCube|sampler[12]DShadow|samplerCubeShadow|[iu]?sampler[12]DArray|sampler[12]DArrayShadow|[iu]?sampler2DRect|sampler2DRectShadow|[iu]?samplerBuffer|[iu]?sampler2DMS(?:Array)?|[iu]?samplerCubeArray|samplerCubeArrayShadow|[iu]?image[123]D|[iu]?image2DRect|[iu]?imageCube|[iu]?imageBuffer|[iu]?image[12]DArray|[iu]?imageCubeArray|[iu]?image2DMS(?:Array)?|struct|hvec[234]|fvec[234]|sampler3DRect|filter)`
+
 window.addEventListener("load", () => {
 	const showCodeTooltips = JSON.parse(localStorage.getItem("settings.show-code-tooltips")) ?? true;
 	if (showCodeTooltips) insertionQ('.token:before').every(onTokenTooltipAdded);
@@ -18,26 +20,35 @@ function modifyHighlighterGrammar(env) {
 	if (highlighterGrammarModified) return;
 	Prism.languages.insertBefore('glsl', 'keyword', {
 		'shader_output': {
-			pattern: /\b(?:COLOR)\b/,
-			alias: 'keyword',
+			pattern: /\b(?:COLOR)\b/
 		},
 		'shader_input': {
-			pattern: /\b(?:UV|RATIO|COORD|TIME)\b/,
-			alias: 'keyword',
+			pattern: /\b(?:UV|RATIO|COORD|TIME)\b/
 		},
 		'constant': {
-			pattern: /\b(?:PI|TAU|E)\b/,
-			alias: 'keyword',
-		},
-		'builtin_functions': {
-			pattern: /\b(?:distance|length|dot)\b/,
-			alias: 'function',
+			pattern: /\b(?:PI|TAU|E|true|false)\b/
 		},
 		'uniform_hint': {
-			pattern: /#(?:range|color)\b/,
-			alias: 'punctuation',
+			pattern: /#(?:range|color|ignore)\b/
+		},
+		'reserved': {
+			pattern: /\b(?:gl_.*|long|short|double|sizeof|cast|namespace|using)\b/
+		},
+		'return_type': {
+			pattern: new RegExp(String.raw`\b${typeRegex}\b(?=\s+\w+\s*\()`)
+		},
+		'constructor_type': {
+			pattern: new RegExp(String.raw`\b${typeRegex}\b(?=\s*\()`)
+		},
+		'type': {
+			pattern: new RegExp(String.raw`\b${typeRegex}\b`)
+		},
+		'keyword_main': {
+			pattern: /\b(?:main)\b/
 		},
 	});
+	// Edited to extract reserved terms and types
+	// keyword =(how?) \b(?:attribute|const|uniform|varying|buffer|shared|coherent|volatile|restrict|readonly|writeonly|atomic_uint|layout|centroid|flat|smooth|noperspective|patch|sample|break|continue|do|for|while|switch|case|default|if|else|subroutine|in|out|inout|void|invariant|precise|discard|return|lowp|mediump|highp|precision|common|partition|active|asm|class|union|enum|typedef|template|this|resource|goto|inline|noinline|public|static|extern|external|interface|half|fixed|unsigned|superp|input|output)\b/
 	highlighterGrammarModified = true;
 }
 
