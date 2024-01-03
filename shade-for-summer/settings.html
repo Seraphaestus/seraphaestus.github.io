@@ -9,7 +9,12 @@
 		<base href="https://seraphaestus.github.io/shade-for-summer/index.html"/>
 		
 		<link rel="stylesheet" type="text/css" href="./styles.css"/>
-		<style> a[href="./settings.html"] { font-weight: bold; } </style>
+		<style> 
+			a[href="./settings.html"] { font-weight: bold; } 
+			#settings label { left:0.5em; top:-0.3em; scale:0.7; } 
+			.line { height:1em; margin-bottom:0.365em; }
+			.collapsible>div { translate: -1em; }
+		</style>
 		
 		<!-- For html reuse -->
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -19,21 +24,59 @@
 		<header></header>
 		<script>$.get("components/header.html", function(data){ $("header").append(data); });</script>
 		
-		<div class="content page">
-			<div>Enable code tooltips<label class="switch" title="Toggle code tooltips" style="left:0.5em; top:-0.3em; scale:0.7;">
+		<div id="settings" class="content page">
+			<div class="line">Enable code tooltips<label class="switch" title="Toggle code tooltips">
 						<input id="show-code-tooltips" type="checkbox"><span></span>
 			</label><br></div>
+			<!-- Granular options -->
+			<button type="button" class="collapsible unselectable sticky-note" style="padding:0 0.2em; width:fit-content; margin:0; font:inherit;" onclick="(function(button){
+				button.classList.toggle('active');
+				button.textContent = button.classList.contains('active') ? 'Hide Granular Options' : 'Show Granular Options'
+				const content = button.nextElementSibling;
+				content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+			})(this);return false;">Show Granular Options</button>
+			<div class="collapsible">
+				<div class="line"><label class="switch" title="Toggle code tooltips">
+							<input id="show-code-tooltips.keywords" type="checkbox"><span></span>
+				</label>&nbsp;&nbsp;Enable tooltips for keywords<br></div>
+				<div class="line"><label class="switch" title="Toggle code tooltips">
+							<input id="show-code-tooltips.types" type="checkbox"><span></span>
+				</label>&nbsp;&nbsp;Enable tooltips for data types<br></div>
+				<div class="line"><label class="switch" title="Toggle code tooltips">
+							<input id="show-code-tooltips.functions" type="checkbox"><span></span>
+				</label>&nbsp;&nbsp;Enable tooltips for functions<br></div>
+				<div class="line"><label class="switch" title="Toggle code tooltips">
+							<input id="show-code-tooltips.constants" type="checkbox"><span></span>
+				</label>&nbsp;&nbsp;Enable tooltips for constants<br></div>
+				<div class="line"><label class="switch" title="Toggle code tooltips">
+							<input id="show-code-tooltips.operators" type="checkbox"><span></span>
+				</label>&nbsp;&nbsp;Enable tooltips for operators<br></div>
+				<div class="line"><label class="switch" title="Toggle code tooltips">
+							<input id="show-code-tooltips.hints" type="checkbox"><span></span>
+				</label>&nbsp;&nbsp;Enable tooltips for uniform hints<br></div>
+			</div>
 		</div>
 		
 		<script>
 			const settings = [
-				{id: "show-code-tooltips", type: "boolean", init: true}
+				{id: "show-code-tooltips", type: "boolean", init: true},
+				{id: "show-code-tooltips.keywords", type: "boolean", init: true},
+				{id: "show-code-tooltips.types", type: "boolean", init: true},
+				{id: "show-code-tooltips.functions", type: "boolean", init: true},
+				{id: "show-code-tooltips.constants", type: "boolean", init: true},
+				{id: "show-code-tooltips.operators", type: "boolean", init: true},
+				{id: "show-code-tooltips.hints", type: "boolean", init: true},
 			];
+			const settingsData = JSON.parse(localStorage.getItem("settings")) ?? {};
 			for (let setting of settings) {
 				const input = document.getElementById(setting.id);
 				if (setting.type == "boolean") {
-					if (JSON.parse(localStorage.getItem(`settings.${setting.id}`)) ?? setting.init) input.setAttribute("checked", "");
-					input.oninput = function() { localStorage.setItem(`settings.${setting.id}`, JSON.stringify(input.checked)); }
+					if (settingsData[setting.id] ?? setting.init) input.setAttribute("checked", "");
+					input.oninput = function() {
+						let settingsData = JSON.parse(localStorage.getItem("settings")) ?? {};
+						settingsData[setting.id] = input.checked;
+						localStorage.setItem("settings", JSON.stringify(settingsData)); 
+					}
 				}
 			}
 		</script>

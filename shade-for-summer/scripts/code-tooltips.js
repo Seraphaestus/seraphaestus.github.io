@@ -1,9 +1,15 @@
 let highlighterGrammarModified = false
+let showSpecificTooltips = {}
 
 const typeRegex = String.raw`(?:float|double|int|bool|d?mat[234](?:x[234])?|[ibdu]?vec[234]|uint|[iu]?sampler[123]D|[iu]?samplerCube|sampler[12]DShadow|samplerCubeShadow|[iu]?sampler[12]DArray|sampler[12]DArrayShadow|[iu]?sampler2DRect|sampler2DRectShadow|[iu]?samplerBuffer|[iu]?sampler2DMS(?:Array)?|[iu]?samplerCubeArray|samplerCubeArrayShadow|[iu]?image[123]D|[iu]?image2DRect|[iu]?imageCube|[iu]?imageBuffer|[iu]?image[12]DArray|[iu]?imageCubeArray|[iu]?image2DMS(?:Array)?|struct|hvec[234]|fvec[234]|sampler3DRect|filter)`
 
 window.addEventListener("load", () => {
-	const showCodeTooltips = JSON.parse(localStorage.getItem("settings.show-code-tooltips")) ?? true;
+	const settingsData = JSON.parse(localStorage.getItem("settings")) ?? {};
+	const showCodeTooltips = settingsData["show-code-tooltips"] ?? true;
+	for (let option of ["keywords", "types", "functions", "constants", "operators", "hints"]) {
+		showSpecificTooltips[option] = settingsData["show-code-tooltips." + option] ?? true;
+	}
+	
 	if (showCodeTooltips) insertionQ('.token:before').every(onTokenTooltipAdded);
 	
 	Prism.hooks.add('before-highlight', modifyHighlighterGrammar);
@@ -20,10 +26,12 @@ function modifyHighlighterGrammar(env) {
 	if (highlighterGrammarModified) return;
 	Prism.languages.insertBefore('glsl', 'keyword', {
 		'shader_output': {
-			pattern: /\b(?:COLOR)\b/
+			pattern: /\b(?:COLOR)\b/,
+			alias: "keyword"
 		},
 		'shader_input': {
-			pattern: /\b(?:UV|RATIO|COORD|TIME)\b/
+			pattern: /\b(?:UV|RATIO|COORD|TIME)\b/,
+			alias: "keyword"
 		},
 		'constant': {
 			pattern: /\b(?:PI|TAU|E|true|false)\b/
@@ -32,19 +40,27 @@ function modifyHighlighterGrammar(env) {
 			pattern: /#(?:range|color|ignore)\b/
 		},
 		'reserved': {
-			pattern: /\b(?:gl_.*|long|short|double|sizeof|cast|namespace|using)\b/
+			pattern: /\b(?:gl_.*|long|short|double|sizeof|cast|namespace|using|output)\b/,
+			alias: "keyword"
 		},
 		'return_type': {
-			pattern: new RegExp(String.raw`\b${typeRegex}\b(?=\s+\w+\s*\()`)
+			pattern: new RegExp(String.raw`\b${typeRegex}\b(?=\s+\w+\s*\()`),
+			alias: "type"
 		},
 		'constructor_type': {
-			pattern: new RegExp(String.raw`\b${typeRegex}\b(?=\s*\()`)
+			pattern: new RegExp(String.raw`\b${typeRegex}\b(?=\s*\()`),
+			alias: "type"
 		},
 		'type': {
 			pattern: new RegExp(String.raw`\b${typeRegex}\b`)
 		},
 		'keyword_main': {
-			pattern: /\b(?:main)\b/
+			pattern: /\b(?:main)\b/,
+			alias: "keyword"
+		},
+		'operator_ternary': {
+			pattern: /[:]/,
+			alias: "operator",
 		},
 	});
 	// Edited to extract reserved terms and types
@@ -75,8 +91,47 @@ function onTokenTooltipAdded(token) {
 }
 
 function getCodeTooltip(token) {
-	if (token.classList.contains("keyword")) {
+	if (token.classList.contains("constant") && showSpecificTooltips["constants"]) {
 		switch (token.innerText) {
+			case "true": return "Boolean True constant";
+			case "false": return "Boolean False constant";
+			case "PI": return "Pi constant: 180° around a circle in radians\nPI  ≡  3.14159265359";
+			case "TAU": return "Tau constant: 360° around a circle in radians\nTAU  ≡  6.28318530718";
+			case "E": return "Euler's number constant: the base of natural logorithms\nE  ≡  2.71828182846";
+		}
+	}
+	const constructorType = token.classList.contains("constructor_type");
+	const returnType = token.classList.contains("return_type");
+	if (token.classList.contains("type") && showSpecificTooltips["types"]) {
+		let prefix = "";
+		let tooltip = "";
+		switch (token.innerText) {
+			case "float": tooltip = "represents a decimal number\ne.g. 1.0, 2.345, 999.999"; break;
+			case "vec2":  tooltip = "represents a 2-dimensional vector\ne.g. 2D coordinate\nIt consists of 2 floats: xy\ne.g. vec2(1.0, 2.0).x  ≡  1.0"; break;
+			case "vec3":  tooltip = "represents a 3-dimensional vector\ne.g. RGB color\nIt consists of 3 floats: xyz aka rgb\ne.g. vec3(1.0, 2.0, 3.0).z  ≡  3.0"; break;
+			case "vec4":  tooltip = "represents a 4-dimensional vector\ne.g. RGBA color with transparency\nIt consists of 4 floats: xyzw aka rgba\ne.g. vec4(1.0, 2.0, 3.0, 4.0).yz  ≡  vec2(2.0, 3.0)"; break;
+			case "int":   tooltip = "represents a whole number\ne.g. 1, 2, 999"; prefix = "[Advanced] "; break;
+			case "ivec2": tooltip = "represents a 2-dimensional vector of whole numbers\nIt consists of 2 ints: xy\ne.g. ivec2(1, 2).x  ≡  1"; prefix = "[Advanced] "; break;
+			case "ivec3": tooltip = "represents a 3-dimensional vector of whole numbers\nIt consists of 3 ints: xyz aka rgb\ne.g. ivec3(1, 2, 3).z  ≡  3"; prefix = "[Advanced] "; break;
+			case "ivec4": tooltip = "represents a 4-dimensional vector of whole numbers\nIt consists of 4 ints: xyzw aka rgba\ne.g. ivec4(1, 2, 3, 4).yz  ≡  ivec2(2, 3)"; prefix = "[Advanced] "; break;
+			case "bool":  tooltip = "represents a boolean value\nA boolean can be either true or false"; break;
+			case "mat2":  tooltip = "represents a 2-dimensional matrix, i.e. a 2x2 array of floats"; prefix = "[Advanced] "; break;
+			case "mat3":  tooltip = "represents a 3-dimensional matrix, i.e. a 3x3 array of floats"; prefix = "[Advanced] "; break;
+			case "mat4":  tooltip = "represents a 4-dimensional matrix, i.e. a 4x4 array of floats"; prefix = "[Advanced] "; break;
+			default: return "I don't know what you're doing with this but good luck!";
+		}
+		if (token.classList.contains("constructor_type")) {
+			return prefix + "A constructor which takes parameters to create a value of the given type. e.g. vec2 x = vec2(0.0, 1.0);\nThis data type " + tooltip;
+		} else if (token.classList.contains("return_type")) {
+			const nextToken = document.evaluate("following-sibling::span[contains(@class, 'token')]", token, null, XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue;
+			return prefix + `Specifies what type of value the function ${nextToken.innerText} returns\nThis data type ` + tooltip;
+		} else {
+			return prefix + "A data type which " + tooltip;
+		}
+	}
+	if (token.classList.contains("keyword") && showSpecificTooltips["keywords"]) {
+		switch (token.innerText) {
+			case "main": return "This is the main function, which will be automatically run for each pixel of the canvas";
 			case "void": return "The output type void means this function does not return a value";
 			
 			case "break": return "A statement which causes the code to instantly exit the current loop";
@@ -89,35 +144,18 @@ function getCodeTooltip(token) {
 			case "for": return "A loop which will run the code within it multiple times\nIn the following brackets you must define an iterator variable, its starting value, looping condition, and increment:\nfor (int i = 0; i < n; i += 1) {}\ni starts at 0, and while less than n, increments by 1";
 			case "while": return "[Unavailable] A loop which will keep running the code within it until its condition is no longer true\nWhile loops are not available in WebGL  :(";
 			
-			case "true": return "Boolean True constant";
-			case "false": return "Boolean False constant";
-			
 			case "const": return "Modifies a variable to be constant for efficiency\nOnce initialized, it cannot be given a new value";
 			case "uniform": return "Modifies a variable to allow constant values to be externally passed into the shader, using input fields that will be automatically generated above the code box\nUniforms must be declared at the top level, outside of functions\nSupported types: float, vec3 (as color), bool";
 			case "struct": return "[Advanced] A data type which groups variables as one object.\ne.g. struct example { float f; bool b; };\ne.g. example x = example(0.0, true);\nStruct variables can also be declared inline after the struct definition. e.g. struct example {float f;} x;";
-			
-			case "float": return "A data type which represents a decimal number\ne.g. 1.0, 2.345, 999.999";
-			case "vec2": return "A data type which represents a 2-dimensional vector\ne.g. 2D coordinate\nIt consists of 2 floats: xy\ne.g. vec2(1.0, 2.0).x  ≡  1.0";
-			case "vec3": return "A data type which represents a 3-dimensional vector\ne.g. RGB color\nIt consists of 3 floats: xyz aka rgb\ne.g. vec3(1.0, 2.0, 3.0).z  ≡  3.0";
-			case "vec4": return "A data type which represents a 4-dimensional vector\ne.g. RGBA color with transparency\nIt consists of 4 floats: xyzw aka rgba\ne.g. vec4(1.0, 2.0, 3.0, 4.0).yz  ≡  vec2(2.0, 3.0)";
-			case "int": return "A data type which represents a whole number\ne.g. 1, 2, 999";
-			case "bool": return "A data type which represents a boolean value\nA boolean can be either true or false";
-			case "mat2": return "A data type which represents a 2-dimensional matrix, i.e. a 2x2 array of floats";
-			case "mat3": return "A data type which represents a 3-dimensional matrix, i.e. a 3x3 array of floats";
-			case "mat4": return "A data type which represents a 4-dimensional matrix, i.e. a 4x4 array of floats";
 			
 			case "COLOR": return "A vec4 output representing the RGBA color of the given pixel\nCOLOR  ≡  gl_FragColor";
 			case "RATIO":
 			case "UV": return "A vec2 input representing the position of the pixel on the canvas\nGoes from (0.0, 0.0) at ⇱ to (1.0, 1.0) at ⇲\nRATIO  ≡  UV";
 			case "COORD": return "A vec2 input representing the position of the pixel on the canvas\nNormalized to ignore the canvas' aspect ratio\nGoes from (-0.25, 0.0) at ⇱ to (1.25, 1.0) at ⇲\nCOORD  ≡  (RATIO - 0.5) * vec2(<aspect ratio>, 1.0) + 0.5";
 			case "TIME": return "A float input representing the number of seconds since the page was loaded";
-			case "PI": return "Pi constant: 180° around a circle in radians\nPI  ≡  3.14159265359";
-			case "TAU": return "Tau constant: 360° around a circle in radians\nTAU  ≡  6.28318530718";
-			case "E": return "Euler's number constant: the base of natural logorithms\nE  ≡  2.71828182846";
 		}
-	} else if (token.classList.contains("function")) {
+	} else if (token.classList.contains("function") && showSpecificTooltips["functions"]) {
 		switch (token.innerText) {
-			case "main": return "This is the main function, which will be automatically run for each pixel of the canvas";
 			// Maths functions
 			case "step": return "Discriminates a boundary.\nCan be thought of returning if a and b are in sorted order\nx = step(a, b);  ≡  if (a <= b) { x = 1.0; } else { x = 0.0; }\nSee also steps(a, b, c)";
 			case "steps": return "Discrimates an upper and lower boundary.\nCan be thought of returning if (a and b) and (b and c) are in sorted order\nsteps(a, b, c)  ≡  step(a, b) * step(b, c)";
@@ -150,7 +188,7 @@ function getCodeTooltip(token) {
 			case "place_sticker": return "Places the specified sticker at the given uv position\nplace_sticker(sticker, uv);  ≡  placeSticker(sticker, uv);  ≡  COLOR = overlay(COLOR, texture2D(sticker, uv));";
 			case "overlay": return "Returns the result of drawing the 2nd RGBA color over the 1st\noverlay(color1, color2)  ≡  mix(color1, color2, color2.a)";
 		}
-	} else if (token.classList.contains("operator")) {
+	} else if (token.classList.contains("operator") && showSpecificTooltips["operators"]) {
 		// Handle double operators
 		let operator = token.innerText;
 		const prevToken = document.evaluate("preceding-sibling::span[contains(@class, 'token')][1]", token, null, XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue
@@ -175,7 +213,8 @@ function getCodeTooltip(token) {
 			case "-=": return "Subtraction-assignment operator\na -= b;  ≡  a = a - b;";
 			case "*=": return "Multiplication-assignment operator\na *= b;  ≡  a = a * b;";
 			case "/=": return "Division-assignment operator\na /= b;  ≡  a = a / b;";
-			case "?": return "[Advanced] Part of a ternary operator\nx = boolean ? 1.0 : 2.0;  ≡  if (boolean) { x = 1.0; } else { x = 2.0; }";
+			case "?":
+			case ":": return "[Advanced] Part of a ternary operator\nx = boolean ? 1.0 : 2.0;  ≡  if (boolean) { x = 1.0; } else { x = 2.0; }";
 			case "||": return "Boolean Or operator\nReturns true if either operand is true, else returns false";
 			case "&&": return "Boolean And operator\nReturns true only if both operands are true, else returns false";
 			case "!": return "Boolean Negation operator\nReturns false if the following boolean is true and vice versa";
@@ -186,15 +225,11 @@ function getCodeTooltip(token) {
 			case ">": return "Greater Than operator\nReturns true if the number on the left is greater than the number on the right, else false";
 			case ">=": return "Greater Than Or Equal To operator\nReturns true if the number on the left is greater than or equal to the number on the right, else false";
 		}
-	} else if (token.classList.contains("uniform_hint")) {
+	} else if (token.classList.contains("uniform_hint") && showSpecificTooltips["hints"]) {
 		switch (token.innerText) {
-			case "#ignore": return "Uniform hint\nA HTML input will not be created for this uniform";
-			case "#range": return "Uniform hint\nSpecifies the range of a input slider\ne.g. #range(0, 1, 0.01)  gives the slider a range of 0 to 1 with a step of 0.01\nThe step parameter is optional";
-			case "#color": return "Uniform hint\nSpecifies that a vec3 or vec4 should be interpreted as a color for the purposes of HTML input controls";
-		}
-	} else if (token.classList.contains("punctuation")) {
-		switch (token.innerText) {
-			case ":": return "[Advanced] Part of a ternary operator\nx = boolean ? 1.0 : 2.0;  ≡  if (boolean) { x = 1.0; } else { x = 2.0; }";
+			case "#ignore": return "[Advanced] A uniform hint that specifies no input should be created for this uniform";
+			case "#range": return "A uniform hint that specifies the range of input sliders\ne.g. #range(0, 1, 0.01)  gives the slider a range of 0 to 1 with a step of 0.01\nThe step parameter is optional";
+			case "#color": return "A uniform hint that specifies that a vec3 or vec4 should be interpreted as a color for the purposes of HTML input controls";
 		}
 	}
 	return null

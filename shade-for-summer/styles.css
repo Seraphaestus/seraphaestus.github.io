@@ -500,9 +500,18 @@ a:hover, a:focus {
 	transform: translateX(26px);
 }
 
+//
+button.sticky-note {
+	background-color: #fff581;
+	padding: 0.3em 0.6em;
+}
+button.sticky-note:hover { background-color: #ffffbb; }
+div.sticky-note {
+	background-color: #f1f1f1;
+	padding: 0.3em 0.6em;
+}
 /* Collapsible Content (Source: https://www.w3schools.com/howto/howto_js_collapsible.asp) */
 button.collapsible {
-	background-color: #fff581;
 	cursor: pointer;
 	width: 100%;
 	border: none;
@@ -510,21 +519,18 @@ button.collapsible {
 	outline: none;
 }
 
-/* When button is toggled (.active added via JS), or hovered over */
-.active, button.collapsible:hover {
-	background-color: #ffffbb;
-}
-
 div.collapsible {
 	padding: 0 18px;
 	display: none;
 	overflow: hidden; /* Hidden by default */
-	background-color: #f1f1f1;
 }
 
 /* Code Tooltips (Source: https://blog.logrocket.com/creating-beautiful-tooltips-with-only-css/, https://www.w3schools.com/css/css_tooltip.asp) */
 .token {
 	--offset-x: 0;
+	
+	position: relative;
+	z-index: 1;
 }
 .token:before {
 	content: attr(data-before);
