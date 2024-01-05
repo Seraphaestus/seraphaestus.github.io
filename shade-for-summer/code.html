@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html style="overflow-x:hidden;">
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,7 +20,7 @@
 		<script>$.get("components/header.html", function(data){ $("header").append(data); });</script>
 		
 		<div class="content flex-container">
-			<div style="flex:1 1 60%; margin:0 1em 3.5em 1em; position:relative; z-index:1">
+			<div style="flex:1 1 60%; max-width: 62.8%; margin:0 1em 3.5em 1em; position:relative; z-index:1">
 				<div id="uniform-area">
 					<!-- Value setter dialog -->
 					<dialog id="setter-dialog">
@@ -33,7 +33,7 @@
 						</form>
 					</dialog>
 				</div>
-				<div class="editor language-glsl" style="margin-top:0.5em">void main() {
+				<div class="editor language-glsl" style="margin-top:0.5em; overflow-x:auto;">void main() {
 	COLOR = vec4(0.15, 0.15, 0.15, 1.0);
 }</div>
 			</div>
@@ -45,10 +45,10 @@
 				</div>
 				<div id="editable-canvas-area" style="translate: 0 -1em;">
 					<canvas id="editable-canvas"  width=450 height=300 style="scale: 87.5%;">Sorry, your browser does not seem to support HTML canvas :(</canvas>
-					<div class="easel" style="height:1.5em; position:relative; z-index:-1; margin-inline:2em; translate:0 -1.5em;/*margin-top:-1.5em;*/"></div>
-					<div class="easel" style="height:1.5em; position:relative; z-index:-2; rotate:70deg;  filter:brightness(85%); left:50%; transform-origin:left; translate:0 -17.5em;"></div>
-					<div class="easel" style="height:1.5em; position:relative; z-index:-2; rotate:110deg; filter:brightness(85%); left:50%; transform-origin:left; translate:0 -19em;"></div>
-					<div class="easel" style="height:1.5em; position:relative; z-index:-3; margin-inline:8%; rotate:90deg;  filter:brightness(75%); left:42%; transform-origin:left; translate:0 -21em;"></div>
+					<div class="easel" style="width:435px; height:1.5em; position:relative; z-index:-1; margin-inline:2em; translate:0 -1.5em;/*margin-top:-1.5em;*/"></div>
+					<div class="easel" style="width:468px; height:1.5em; position:relative; z-index:-2; rotate:70deg;  filter:brightness(85%); left:50%; transform-origin:left; translate:0 -17.5em;"></div>
+					<div class="easel" style="width:468px; height:1.5em; position:relative; z-index:-2; rotate:110deg; filter:brightness(85%); left:50%; transform-origin:left; translate:0 -19em;"></div>
+					<div class="easel" style="width:393px; height:1.5em; position:relative; z-index:-3; margin-inline:8%; rotate:90deg;  filter:brightness(75%); left:42%; transform-origin:left; translate:0 -21em;"></div>
 				</div>
 				
 				<div style="position: fixed; top: 1em; right: 0.5em;">
