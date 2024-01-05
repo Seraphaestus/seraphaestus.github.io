@@ -1,17 +1,148 @@
 <!DOCTYPE html>
-<html>
+<html style="overflow:hidden;">
 	<head>
 		<meta charset="UTF-8">
 		<title>Amaryllis</title>
 		<link rel="icon" type="image/x-icon" href="icon.png">
 		<link rel="stylesheet" type="text/css" href="./shade-for-summer/styles.css"/>
+		
+		<!-- For hover event -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+		
+		<style>
+		.amaryllis-image {
+			pointer-events: none;
+			width: 15%; aspect-ratio: 1; /* Size */
+			border-radius: 50%; /* Circle */
+			background-color: inherit;
+			overflow: hidden;
+		}
+		
+		.center {
+			position: absolute;
+			inset: 0 0;
+			margin: auto;
+		}
+		
+		.circle {
+			border-radius: 50%;
+		}
+		
+		.outline {
+			filter: drop-shadow(1px 1px 3px #f99) 
+						  drop-shadow(-1px -1px 3px #f99);
+		}
+		
+		.segment {
+			width: var(--circle-size); height: var(--circle-size); /* Actual size of svg */
+			text-align: center;
+			scale: 100%; transition: scale 0.1s;
+			
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+		.segment[onclick] {
+			cursor: pointer;
+		}
+		.segment[onclick]:hover {
+			scale: 110%; transition: scale 0.2s;
+		}
+		
+		.segment > * {
+			position: relative;
+			max-width: 178px;
+			max-height: 118px;
+		}
+		</style>
 	</head>
 	
-	<body style="background: #000000;">
-		<div style="position: absolute; left: 50%;">
-			<a href="./shade-for-summer/index.html" style="position: relative; left: -50%; top: 3em"><h1 class="font-effect-warm-glow">Shade for Summer</h1></a>
+	<body class="outline" style="background: #1e030e;">
+		<div class="segment center" onclick="location.href='./shade-for-summer/index.html';">
+			<h1 class="font-effect-warm-glow">Shade for Summer</h1>
 		</div>
-		<img src="amaryllis.png" alt="Amaryllis, CC0 by Karen Arnold" class="amaryllis-image">
-}
+		<div class="segment center">
+			<h1></h1>
+		</div>
+		<div class="segment center">
+			<h1></h1>
+		</div>
+		<div class="segment center">
+			<h1></h1>
+		</div>
+		<div class="segment center">
+			<h1></h1>
+		</div>
+		<div class="segment center">
+			<h1></h1>
+		</div>
+		<div class="amaryllis-image center outline" style="display:flex; justify-content:center; align-items:center;">
+			<span style="color: #eee; opacity:0; transition:opacity 0.3s; position:absolute; text-align:center; max-width:85%; max-height:85%;"></span>
+			<img class="outline" style="width:100%; height:100%; transition:opacity 0.3s;" src="amaryllis.png" alt="Amaryllis, CC0 by Karen Arnold">
+		</div>
+		
+		<!-- Masks for circle segments -->
+		<svg>
+			<defs></defs>
+		</svg>
+		<script>
+			const descriptions = ["A shader coding game about painting photos sent by a friend on a trip. WIP  :)"]
+			const diameter = window.screen.height * 0.75;
+			document.querySelector("body").style.setProperty("--circle-size", `${diameter}px`);
+			
+			const svg = document.querySelector("svg");
+			svg.setAttributeNS(null, "width", diameter);
+			svg.setAttributeNS(null, "height", diameter);
+			
+			const segmentElements = document.querySelectorAll(".segment");
+			const centerImage = document.querySelector(".amaryllis-image>img");
+			const centerText = document.querySelector(".amaryllis-image>span");
+			for (let i = 0; i < segmentElements.length; i++) {
+				const segmentElement = segmentElements[i];
+				if (!segmentElement.hasAttribute("onclick")) continue;
+				// Add hover behaviour
+				$(segmentElement).hover(() => {centerImage.style.opacity = 0; centerText.style.opacity = 1; centerText.innerText = descriptions[i];}, () => {centerImage.style.opacity = 1; centerText.style.opacity = 0;});
+			}
+			
+			const createPath = function() {
+				const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+				path.setAttributeNS(null, "fill", "#fff");
+				path.setAttributeNS(null, "stroke", "#000");
+				path.setAttributeNS(null, "stroke-width", 2);
+				return path;
+			}
+			
+			const pathSegment = function(path, center, radius, angle, deltaAngle) {
+				const corner1 = {x: center.x + radius * Math.cos(angle - deltaAngle/2), y: center.y + radius * Math.sin(angle - deltaAngle/2)};
+				const corner2 = {x: center.x + radius * Math.cos(angle + deltaAngle/2), y: center.y + radius * Math.sin(angle + deltaAngle/2)};
+				path.setAttributeNS(null, "d", `M${center.x},${center.y} L${corner1.x},${corner1.y} A${center.x},${center.y} 0,0,1 ${corner2.x},${corner2.y} z`);
+			}
+			
+			const radius = diameter / 2;
+			const deltaAngle = Math.PI * 2 / segmentElements.length;
+			for (let i = 0; i < segmentElements.length; i++) {
+				const angle = i * deltaAngle - Math.PI / 2;
+				
+				const clipPath = document.createElementNS("http://www.w3.org/2000/svg", "clipPath");
+				clipPath.id = `slice${i}`;
+				svg.firstElementChild.appendChild(clipPath);
+				
+				const path = createPath();
+				pathSegment(path, {x: radius, y: radius}, radius, angle, deltaAngle);
+				clipPath.appendChild(path);
+				
+				segmentElements[i].style["clip-path"] = `url(#${clipPath.id})`;
+				segmentElements[i].style["shape-outside"] = `url(#${clipPath.id})`;
+				let r = 54, g = 11, b = 26;
+				const variance = Math.random() * 12 - 6;
+				r = Math.max(0, r + variance);
+				g = Math.max(0, g + variance);
+				b = Math.max(0, b + variance);
+				segmentElements[i].style["background-color"] = `rgb(${r}, ${g}, ${b})`;
+				
+				const contentPosition = {x: 0.7 * radius * Math.cos(angle), y: 0.7 * radius * Math.sin(angle)};
+				segmentElements[i].firstElementChild.style.inset = `${contentPosition.y}px ${contentPosition.x}px`;
+			}
+		</script>
 	</body>
 </html>
