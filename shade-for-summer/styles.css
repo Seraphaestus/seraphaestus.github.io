@@ -332,6 +332,7 @@ button {
 	letter-spacing: normal;
 	line-height: 20px;
 	padding: 10px;
+	padding-right: 9px; /* Slight reduction to stop premature scrollbar showing */
 	tab-size: 4;
 	overflow-y: visible !important;
 }
@@ -345,10 +346,9 @@ button {
 	padding-right: 5px !important;
 	text-align: right !important;
 	color: #97a0df !important;
-	background: none !important;
-	
-	-webkit-mask-image: linear-gradient(0deg, transparent, transparent 10px, white 10px, white);
-	-mask-image: linear-gradient(0deg, transparent, transparent 10px, white 10px, white);
+	background-color: #353741 !important;
+	mix-blend-mode: normal !important;
+	z-index: 2;
 	
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
@@ -356,6 +356,10 @@ button {
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+}
+.codejar-linenumbers>div {
+	//-webkit-mask-image: linear-gradient(0deg, transparent, transparent 10px, white 10px, white);
+	//-mask-image: linear-gradient(0deg, transparent, transparent 10px, white 10px, white);
 }
 
 /* Syntax highlighting */
@@ -426,18 +430,6 @@ a:hover, a:focus {
 	filter: drop-shadow(1px 1px 1px #444) 
 			drop-shadow(-1px -1px 1px #444);
 	color-scheme: only light;
-}
-.amaryllis-image {
-	display: block;
-	margin-inline: auto;
-	width: 50%;
-	scale: 80%;
-	position: relative;
-	top: 4em;
-	left: -0.75em;
-	/* Outline */
-	filter: drop-shadow(1px 1px 3px #f99) 
-			drop-shadow(-1px -1px 3px #f99);
 }
 
 /* Vertical Slider */
@@ -578,6 +570,7 @@ div.collapsible {
 	height: 0;
 	border-color: black transparent transparent transparent;
 	display: none;
+	pointer-events: none;
 }
 .token:hover:after {
 	display: block;
