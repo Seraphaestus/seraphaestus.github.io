@@ -6,8 +6,6 @@ const floatRegex = String.raw`-?\s*(?:[0-9]+\.?[0-9]*|[0-9]*\.[0-9]+)\s*`;
 const rangeHintRegex = String.raw`range\((?:${floatRegex},\s*){1,2}(?:${floatRegex})\)`
 const uniformRegex = new RegExp(String.raw`uniform\s+(?<type>\w+)\s+(?<name>\w+)\s*(?<hints>(?:#(?:${rangeHintRegex}|color|ignore|display)\s*)*);`, "g");
 
-let varDefRegex /* Init in setup to pull from code-tooltips const */
-
 const error_dictionary = [
 	{from: "gl_FragColor", to: "COLOR"},
 	{from: "RATIO", to: "RATIO/UV"},
@@ -40,7 +38,6 @@ let uniformValues = {}
 
 let codeJar
 let editor
-let codeVariables
 let targetCanvas
 let editableCanvas
 
@@ -63,8 +60,6 @@ let targetImageShader = null
 
 function setup(event) {
 	"use strict";
-	
-	varDefRegex = new RegExp(String.raw`\b(uniform\s+|for\s*\(\s*)?(${typeRegex})\s+(\w+)\b`, "g");
 	
 	setupUniformSetterDialog();
 	
@@ -168,17 +163,11 @@ function update() {
 	editableCanvas.redrawShader();
 }
 
+
+
 function onCodeEdited(code, saveCode = true) {
 	codeUsesTime = code.indexOf("TIME") != -1;
-	
-	codeVariables = {}
-	for (let varDefMatch of code.matchAll(varDefRegex)) {
-		let varType = null;
-		if (varDefMatch[1]?.startsWith("uniform")) varType = "Uniform";
-		else if (varDefMatch[1]?.startsWith("for")) varType = "Iterator";
-		codeVariables[varDefMatch[3]] = {type: varDefMatch[2], varType: varType};
-	}
-	
+	codeVariables = getCodeVariables(code);
 	updateCanvas(editableCanvas, code, true, false);
 	if (saveCode) {
 		localStorage.setItem('code', code);
