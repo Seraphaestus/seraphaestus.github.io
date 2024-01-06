@@ -33,17 +33,11 @@ window.addEventListener("load", () => {
 	}
 	
 	Prism.hooks.add('before-highlight', onCodeJarPostInit);
-	
-	// I don't know why, but neither of the above callbacks are running on the live site (while working fine on local)
-	// until each .editor element is updated somewhow, so here:
-	for (let editor of document.getElementsByClassName("editor")) {
-		editor.innerHTML = editor.innerHTML
-	}
 
 }, {once: true});
 
 function onCodeJarPostInit(env) {
-	if (!codeJarPostInit) {;
+	if (!codeJarPostInit) {
 		modifyHighlighterGrammar(env);
 		codeJarPostInit = true;
 	}

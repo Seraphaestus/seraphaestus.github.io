@@ -148,6 +148,8 @@ void main() {
 			
 			for (let codeSection of document.querySelectorAll(".editor")) {
 				let codeJar = new CodeJar(codeSection, el => Prism.highlightElement(el));
+				// Not sure why it happens but this fixes a bug where 1 (one) of the editors refuses to highlight properly until you manually edit it
+				codeJar.updateCode(codeJar.toString());
 			}
 		</script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/components/prism-core.min.js"></script>
