@@ -39,28 +39,30 @@ const WebGLUtils = {
 	},
 	
 	// https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Using_textures_in_WebGL
-	loadTexture: function(webGL, url) {
+	loadTexture: function(webGL, url, textureIndex = 0, runningLocally = false) {
 		const texture = webGL.createTexture();
+		
+		const defaultColors = [ [255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255], [0, 255, 255, 255], [255, 255, 0, 255], [255, 0, 255, 255] ];
+		
+		// Init image as random color
+		webGL.activeTexture(webGL.TEXTURE0 + textureIndex);
 		webGL.bindTexture(webGL.TEXTURE_2D, texture);
+		webGL.texImage2D(webGL.TEXTURE_2D, 0, webGL.RGBA, 1, 1, 0, webGL.RGBA, webGL.UNSIGNED_BYTE, new Uint8Array(defaultColors[textureIndex]));
 		
-		const level = 0, width = 1, height = 1, border = 0;
-		const internalFormat = webGL.RGBA, srcFormat = webGL.RGBA;
-		const srcType = webGL.UNSIGNED_BYTE;
-		const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
-		
-		webGL.texImage2D(webGL.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
-		
-		const image = new Image();
-		image.onload = () => {
-			webGL.bindTexture(webGL.TEXTURE_2D, texture);
-			webGL.texImage2D(webGL.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
-			
-			webGL.texParameteri(webGL.TEXTURE_2D, webGL.TEXTURE_MIN_FILTER, webGL.LINEAR); // or webGL.NEAREST
-			// Prevents uv coordinate wrapping (repeating)
-			webGL.texParameteri(webGL.TEXTURE_2D, webGL.TEXTURE_WRAP_S, webGL.CLAMP_TO_EDGE);
-			webGL.texParameteri(webGL.TEXTURE_2D, webGL.TEXTURE_WRAP_T, webGL.CLAMP_TO_EDGE);
-		};
-		image.src = url;
+		if (!runningLocally) {
+			const image = new Image();
+			image.onload = () => {
+				webGL.activeTexture(webGL.TEXTURE0 + textureIndex);
+				webGL.bindTexture(webGL.TEXTURE_2D, texture);
+				webGL.texImage2D(webGL.TEXTURE_2D, 0, webGL.RGBA, webGL.RGBA, webGL.UNSIGNED_BYTE, image);
+				
+				webGL.texParameteri(webGL.TEXTURE_2D, webGL.TEXTURE_MIN_FILTER, webGL.LINEAR); // or webGL.NEAREST
+				// Prevents uv coordinate wrapping (repeating)
+				webGL.texParameteri(webGL.TEXTURE_2D, webGL.TEXTURE_WRAP_S, webGL.CLAMP_TO_EDGE);
+				webGL.texParameteri(webGL.TEXTURE_2D, webGL.TEXTURE_WRAP_T, webGL.CLAMP_TO_EDGE);
+			};
+			image.src = url;
+		}
 		return texture;
 	},
 }

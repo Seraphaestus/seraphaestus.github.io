@@ -46,6 +46,8 @@ const initialTime = Date.now()
 let time
 let codeUsesTime = false
 
+const runningLocally = (window.location.protocol == "file:");
+
 const uvShader =
 	"void main() {" +
 	"	COLOR = vec4(RATIO, 1.0, 0.5);" +
@@ -96,14 +98,14 @@ function setup(event) {
 		updateCanvas(targetCanvas, targetImageShaders[day].targetCode, false, false);
 		
 		for (let stickerName in stickers) {
-			targetCanvas.setSamplerUniform(stickerName, stickers[stickerName]);
+			targetCanvas.setSamplerUniform(stickerName, stickers[stickerName], runningLocally);
 		}
 		targetCanvas.webGL.drawArrays(targetCanvas.webGL.TRIANGLE_STRIP, 0, 4);
 	}
 	editableCanvas = new ShadeableCanvas(document.querySelector("#editable-canvas"), paragraph);
 	onCodeEdited(codeJar.toString(), false);
 	for (let stickerName in stickers) {
-		editableCanvas.setSamplerUniform(stickerName, stickers[stickerName]);
+		editableCanvas.setSamplerUniform(stickerName, stickers[stickerName], runningLocally);
 	}
 	editableCanvas.webGL.drawArrays(editableCanvas.webGL.TRIANGLE_STRIP, 0, 4);
 	
