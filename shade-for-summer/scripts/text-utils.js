@@ -37,3 +37,10 @@ function getCanvasFont(element = document.body) {
 	
 	return `${fontWeight} ${fontSize} ${fontFamily}`;
 }
+
+
+function getMaxLineWidth(font, text, maxWidth = 1000000) {
+	const lines = text.split("\n")
+	const longestLine = lines.sort((a, b) => { return b.length - a.length; })[0];
+	return Math.min(maxWidth, getTextWidth(longestLine, font));
+}

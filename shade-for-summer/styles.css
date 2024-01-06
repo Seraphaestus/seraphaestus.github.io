@@ -518,67 +518,55 @@ div.collapsible {
 }
 
 /* Code Tooltips (Source: https://blog.logrocket.com/creating-beautiful-tooltips-with-only-css/, https://www.w3schools.com/css/css_tooltip.asp) */
-.token {
-	--offset-x: 0;
+.tooltip-origin {
+	pointer-events: none;
 	
-	position: relative;
-	z-index: 1;
-}
-.token:before {
-	content: attr(data-before);
 	position: absolute;
+	width: 0; height: 0;
+	z-index: 1000;
 	
-	width: max-content;
-	max-width: 512px;
 	
-	/* horizontally center */
-	left: 50%;
-	transform: translateX(-50%) translateX(var(--offset-x)) translateY(-6px);
-	
-	/* move to top */
-	bottom: 100%;
-	
-	/* basic styles */
+}
+.tooltip {
+	pointer-events: none;
 	
 	border-radius: 10px;
 	background: #000;
 	color: #fff;
+	font-family: monospace;
+	font-size: 14px;
 	text-align: center;
+	white-space: pre-wrap;
 	
-	display: none; /* hide by default */
-	
-	/* Override token-type -specific styling */
-	white-space: initial !important;
-}
-/* Needs to be without [data-before] or the insertionQ method doesn't pick it up */
-.token:hover:before {
-	display: block;
-}
-/* Needs to be seperate from the .token:before style so empty tooltips don't show */
-.token[data-before]:before {
+	width: max-content;
+	height: max-content;
+	max-width: 512px;
 	padding: 10px;
-	margin-bottom: 8px;
-}
-/* Tooltip arrow */
-.token:after {
-	content: "‎";
+	
 	position: absolute;
-	top: -14px;
-	left: 50%;
+	/* horizontally center */
+	left: 50%; transform: translateX(-50%) translateY(-20px);
+	/* move to top */
+	bottom: 100%;
+}
+.tooltip-origin:after {
+	position: absolute;
+	/* horizontally center */
+	left: 50%; transform: translateX(-50%) translateY(-20px);
+	
+	/* Arrow */
+	content: "‎";
 	margin-left: -5px;
-	border-width: 8px;
 	height: 0;
-	border-color: black transparent transparent transparent;
-	display: none;
-	pointer-events: none;
-}
-.token:hover:after {
-	display: block;
-}
-.token[data-before]:after {
+	border-width: 8px;
 	border-style: solid;
+	border-color: black transparent transparent transparent;
 }
-
+.tooltip-text-lesser { color: #ddd; }
+.tooltip-text-example { color: #bbb; }
+.tooltip-text-code { color: #99a7d7; }
+.tooltip-text-equivalence { color: #99d7a7; }
+.tooltip-text-tag { color: #dbd580; font-weight: bold; }
 
 /* Dark Mode */
 @media (prefers-color-scheme: dark) {
