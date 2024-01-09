@@ -20,7 +20,6 @@ class ShadeableCanvas {
 		this.vertexShader = null;
 		this.fragmentShaderSource = null; // To keep track of if it has actually changed
 		this.fragmentInfoLog = null;
-		this.textureIndex = 0;
 		
 		this.vertexShaderSource = 
 			"attribute vec2 a_position;\n" +
@@ -96,6 +95,15 @@ class ShadeableCanvas {
 		this.webGL.deleteShader(fragmentShader);
 	}
 	
+	setTextureUniforms(textures, runningLocally = false) {
+		this.textureIndex = 0;
+		for (let textureName in textures) {
+			this.setSamplerUniform(textureName, textures[textureName], runningLocally);
+			this.textureIndex++;
+		}
+		this.webGL.drawArrays(this.webGL.TRIANGLE_STRIP, 0, 4);
+	}
+	
 	setSamplerUniform(varName, textureUrl, runningLocally = false) {
 		const uniformLocation = this.webGL.getUniformLocation(this.program, varName);
 		
@@ -104,8 +112,6 @@ class ShadeableCanvas {
 		const texture = WebGLUtils.loadTexture(this.webGL, textureUrl, this.textureIndex, runningLocally);
 		// Flip image pixels into the bottom-to-top order that WebGL expects.
 		this.webGL.pixelStorei(this.webGL.UNPACK_FLIP_Y_WEBGL, true);
-		
-		this.textureIndex++;
 	}
 	
 	setVectorUniform(varName, components, isFloat = true) {

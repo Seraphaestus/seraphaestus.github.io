@@ -1,6 +1,6 @@
 let codeJarPostInit = false
 let showSpecificTooltips = {}
-let codeVariables
+let codeVariables = {}
 
 const vectorRegex = /[ibdu]?vec[234]/
 const typeRegex = String.raw`(?:float|double|int|bool|d?mat[234](?:x[234])?|[ibdu]?vec[234]|uint|[iu]?sampler[123]D|[iu]?samplerCube|sampler[12]DShadow|samplerCubeShadow|[iu]?sampler[12]DArray|sampler[12]DArrayShadow|[iu]?sampler2DRect|sampler2DRectShadow|[iu]?samplerBuffer|[iu]?sampler2DMS(?:Array)?|[iu]?samplerCubeArray|samplerCubeArrayShadow|[iu]?image[123]D|[iu]?image2DRect|[iu]?imageCube|[iu]?imageBuffer|[iu]?image[12]DArray|[iu]?imageCubeArray|[iu]?image2DMS(?:Array)?|struct|hvec[234]|fvec[234]|sampler3DRect|filter)`
@@ -36,14 +36,14 @@ window.addEventListener("load", () => {
 
 }, {once: true});
 
-function onCodeJarPostInit(env) {
+function onCodeJarPostInit() {
 	if (!codeJarPostInit) {
-		modifyHighlighterGrammar(env);
+		modifyHighlighterGrammar();
 		codeJarPostInit = true;
 	}
 }
 
-function modifyHighlighterGrammar(env) {
+function modifyHighlighterGrammar() {
 	Prism.languages.insertBefore('glsl', 'keyword', {
 		'component_accessor': {
 			pattern: /\b\.[_a-zA-Z]\w*\b/,

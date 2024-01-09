@@ -97,17 +97,11 @@ function setup(event) {
 		
 		updateCanvas(targetCanvas, targetImageShaders[day].targetCode, false, false);
 		
-		for (let stickerName in stickers) {
-			targetCanvas.setSamplerUniform(stickerName, stickers[stickerName], runningLocally);
-		}
-		targetCanvas.webGL.drawArrays(targetCanvas.webGL.TRIANGLE_STRIP, 0, 4);
+		targetCanvas.setTextureUniforms(stickers, runningLocally);
 	}
 	editableCanvas = new ShadeableCanvas(document.querySelector("#editable-canvas"), paragraph);
 	onCodeEdited(codeJar.toString(), false);
-	for (let stickerName in stickers) {
-		editableCanvas.setSamplerUniform(stickerName, stickers[stickerName], runningLocally);
-	}
-	editableCanvas.webGL.drawArrays(editableCanvas.webGL.TRIANGLE_STRIP, 0, 4);
+	editableCanvas.setTextureUniforms(stickers, runningLocally);
 	
 	// UpdateCanvas parses the source and creates uniform handles, we can now load values and set them
 	const loadedUniformValues = JSON.parse(localStorage.getItem('uniforms')) ?? {};
