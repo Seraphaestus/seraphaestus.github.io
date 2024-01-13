@@ -1,10 +1,27 @@
+const vertexShaderSource = 
+	"attribute vec2 a_position;\n" +
+	"attribute vec2 a_uv;\n" +
+	"varying mediump vec2 RATIO;\n" +
+	"varying mediump vec2 COORD;\n" +
+	
+	"void main() {\n" + 
+	"	gl_Position = vec4(a_position, 0.0, 1.0);\n" +
+	"	RATIO = a_uv;\n" +
+	"	COORD = (a_uv - 0.5) * vec2(1.5, 1.0) + 0.5;\n" +
+	"}";
+
 class ShadeableCanvas {
+	
+	program = null;
+	vertexShader = null;
+	fragmentShaderSource = null; // To keep track of if it has actually changed
+	fragmentInfoLog = null;
 	
 	constructor(canvas, fallbackText, useAlpha = true) {
 		this.canvas = canvas
 		const contextParams = useAlpha ? {premultipliedAlpha: false, antialias: false} : {alpha: false, antialias: false}
 		this.webGL = canvas.getContext("webgl", contextParams) || canvas.getContext("experimental-webgl", contextParams);
-		if (!this.webGL) {
+		if (!this.webGL && fallbackText) {
 			fallbackText.innerHTML =
 				"Failed to get WebGL context. " +
 				"Your browser or device may not support WebGL.";
@@ -14,24 +31,6 @@ class ShadeableCanvas {
 		this.webGL.viewport(0, 0, this.webGL.drawingBufferWidth, this.webGL.drawingBufferHeight);
 		this.webGL.clearColor(0.2, 0.2, 0.2, 1.0);
 		this.webGL.clear(this.webGL.COLOR_BUFFER_BIT);
-		
-		// Variables
-		this.program = null;
-		this.vertexShader = null;
-		this.fragmentShaderSource = null; // To keep track of if it has actually changed
-		this.fragmentInfoLog = null;
-		
-		this.vertexShaderSource = 
-			"attribute vec2 a_position;\n" +
-			"attribute vec2 a_uv;\n" +
-			"varying mediump vec2 RATIO;\n" +
-			"varying mediump vec2 COORD;\n" +
-			
-			"void main() {\n" + 
-			"	gl_Position = vec4(a_position, 0.0, 1.0);\n" +
-			"	RATIO = a_uv;\n" +
-			"	COORD = (a_uv - 0.5) * vec2(1.5, 1.0) + 0.5;\n" +
-			"}";
 	}
 	
 	hasSourceChanged(source) {
@@ -40,8 +39,8 @@ class ShadeableCanvas {
 		return true
 	}
 	
-	recreateShader(source) {
-		this.createShaderProgram(this.vertexShaderSource, source);
+	recreateShader(source, uniformValues) {
+		this.createShaderProgram(vertexShaderSource, source);
 		
 		if (!this.webGL.getProgramParameter(this.program, this.webGL.LINK_STATUS)) {
 			const linkErrorLog = this.webGL.getProgramInfoLog(this.program);
@@ -55,7 +54,7 @@ class ShadeableCanvas {
 		WebGLUtils.setBuffersAndAttributes(this.webGL, this.program, WebGLUtils.createBuffersForScreenQuad(this.webGL))
 		
 		// Uniforms
-		this.setVectorUniform("TIME", [0.0]);
+		this.setVectorUniform("TIME", [time ?? 0.0]);
 		for (let varName in uniformValues) {
 			if (!uniformValues[varName].shaderValue) continue;
 			this.setVectorUniform(varName, uniformValues[varName].shaderValue, uniformValues[varName].isFloat ?? true);
@@ -64,9 +63,11 @@ class ShadeableCanvas {
 		this.webGL.drawArrays(this.webGL.TRIANGLE_STRIP, 0, 4);
 	}
 	
-	redrawShader() {
+	redrawShader(uniformValues) {
+		if (!this.program) return;
+		
 		// Uniforms
-		this.setVectorUniform("TIME", [time]);
+		this.setVectorUniform("TIME", [time ?? 0.0]);
 		for (let varName in uniformValues) {
 			if (!uniformValues[varName].shaderValue) continue;
 			this.setVectorUniform(varName, uniformValues[varName].shaderValue, uniformValues[varName].isFloat ?? true);
@@ -96,6 +97,7 @@ class ShadeableCanvas {
 	}
 	
 	setTextureUniforms(textures, runningLocally = false) {
+		if (!this.program) return;
 		this.textureIndex = 0;
 		for (let textureName in textures) {
 			this.setSamplerUniform(textureName, textures[textureName], runningLocally);

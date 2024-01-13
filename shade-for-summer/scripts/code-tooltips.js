@@ -1,6 +1,5 @@
 let codeJarPostInit = false
 let showSpecificTooltips = {}
-let codeVariables = {}
 
 const vectorRegex = /[ibdu]?vec[234]/
 const typeRegex = String.raw`(?:float|double|int|bool|d?mat[234](?:x[234])?|[ibdu]?vec[234]|uint|[iu]?sampler[123]D|[iu]?samplerCube|sampler[12]DShadow|samplerCubeShadow|[iu]?sampler[12]DArray|sampler[12]DArrayShadow|[iu]?sampler2DRect|sampler2DRectShadow|[iu]?samplerBuffer|[iu]?sampler2DMS(?:Array)?|[iu]?samplerCubeArray|samplerCubeArrayShadow|[iu]?image[123]D|[iu]?image2DRect|[iu]?imageCube|[iu]?imageBuffer|[iu]?image[12]DArray|[iu]?imageCubeArray|[iu]?image2DMS(?:Array)?|struct|hvec[234]|fvec[234]|sampler3DRect|filter)`
@@ -26,25 +25,21 @@ window.addEventListener("load", () => {
 			tooltip.className = "tooltip";
 			tooltipOrigin.appendChild(tooltip);
 		}
-		
-		Prism.hooks.add('complete', (context) => {
-			$(context.element).children(".token").hover((event) => {setTokenTooltip(event.target);}, () => {removeTokenTooltip(event.target);});
-		});
 	}
-	
-	Prism.hooks.add('before-highlight', onCodeJarPostInit);
 
 }, {once: true});
 
-function onCodeJarPostInit() {
-	if (!codeJarPostInit) {
-		modifyHighlighterGrammar();
-		codeJarPostInit = true;
-	}
-}
-
-function modifyHighlighterGrammar() {
-	Prism.languages.insertBefore('glsl', 'keyword', {
+function setHighlighterGrammar() {
+	Prism.languages.glsl = {
+		'preprocessor': {
+			pattern: /(^[ \t]*)#(?:(?:define|undef|if|ifdef|ifndef|else|elif|endif|error|pragma|extension|version|line)\b)?/m,
+			lookbehind: true,
+			alias: "builtin"
+		},
+		'comment': [
+			/\/\*[\s\S]*?\*\//, 
+			/\/\/(?:\\(?:\r\n|[\s\S])|[^\\\r\n])*/
+		],
 		'component_accessor': {
 			pattern: /\b\.[_a-zA-Z]\w*\b/,
 			alias: "punctuation"
@@ -82,16 +77,25 @@ function modifyHighlighterGrammar() {
 			pattern: /\b(?:main)\b/,
 			alias: "keyword"
 		},
-		'operator_ternary': {
-			pattern: /[:]/,
-			alias: "operator"
+		'keyword': {
+			pattern: /\b(?:attribute|const|uniform|varying|buffer|shared|coherent|volatile|restrict|readonly|writeonly|atomic_uint|layout|centroid|flat|smooth|noperspective|patch|sample|break|continue|do|for|while|switch|case|default|if|else|subroutine|in|out|inout|void|invariant|precise|discard|return|lowp|mediump|highp|precision|common|partition|active|asm|class|union|enum|typedef|template|this|resource|goto|inline|noinline|public|static|extern|external|interface|half|fixed|unsigned|superp|input|output)\b/
 		},
-	});
-	Prism.languages.glsl['variable'] = {
-		pattern: /\b[_a-zA-Z]\w*\b/
-	};
-	// Edited to extract reserved terms and types
-	// keyword =(how?) \b(?:attribute|const|uniform|varying|buffer|shared|coherent|volatile|restrict|readonly|writeonly|atomic_uint|layout|centroid|flat|smooth|noperspective|patch|sample|break|continue|do|for|while|switch|case|default|if|else|subroutine|in|out|inout|void|invariant|precise|discard|return|lowp|mediump|highp|precision|common|partition|active|asm|class|union|enum|typedef|template|this|resource|goto|inline|noinline|public|static|extern|external|interface|half|fixed|unsigned|superp|input|output)\b/
+		'function': {
+			pattern: /\w+(?=\()/
+		},
+		'number': {
+			pattern: /(?:\b0x[\da-f]+|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?)[ulf]*/i
+		},
+		'operator': {
+			pattern: /[<>]=?|[!=]=?=?|--?|\+\+?|&&?|\|\|?|[?*/~^%:]/
+		},
+		'punctuation': {
+			pattern: /[{}[\];(),.:]/
+		},
+		'variable': {
+			pattern: /\b[_a-zA-Z]\w*\b/
+		},
+	}
 }
 
 function getTokenTooltip(token) {
@@ -167,13 +171,13 @@ function getCodeTooltip(token) {
 		let tooltip = "";
 		switch (token.innerText) {
 			case "float":  tooltip = ["represents a decimal number", "<ex:e.g. 1.0, 2.345, 999.999>"]; break;
-			case "vec2":   tooltip = ["represents a 2-dimensional vector", "<ex:e.g. 2D coordinate>", "It consists of 2 floats: xy", "<ex:e.g. <eq:vec2(1.0, 2.0).x  ≡  1.0>>"]; break;
-			case "vec3":   tooltip = ["represents a 3-dimensional vector", "<ex:e.g. RGB color>", "It consists of 3 floats: xyz aka rgb", "<ex:e.g. <eq:vec3(1.0, 2.0, 3.0).z  ≡  3.0>>"]; break;
-			case "vec4":   tooltip = ["represents a 4-dimensional vector", "<ex:e.g. RGBA color with transparency>", "It consists of 4 floats: xyzw aka rgba", "<ex:e.g. <eq:vec4(1.0, 2.0, 3.0, 4.0).yz  ≡  vec2(2.0, 3.0)>>"]; break;
+			case "vec2":   tooltip = ["represents a 2-dimensional vector", "<ex:e.g. 2D coordinate>", "It consists of 2 floats: (x, y)", "<ex:e.g. <eq:vec2(1.0, 2.0).x  ≡  1.0>>"]; break;
+			case "vec3":   tooltip = ["represents a 3-dimensional vector", "<ex:e.g. RGB color>", "It consists of 3 floats: (x, y, z) aka (r, g, b)", "<ex:e.g. <eq:vec3(1.0, 2.0, 3.0).z  ≡  3.0>>"]; break;
+			case "vec4":   tooltip = ["represents a 4-dimensional vector", "<ex:e.g. RGBA color with transparency>", "It consists of 4 floats: (x, y, z, w) aka (r, g, b, a)", "<ex:e.g. <eq:vec4(1.0, 2.0, 3.0, 4.0).yz  ≡  vec2(2.0, 3.0)>>"]; break;
 			case "int":    advanced = true; tooltip = ["represents a whole number", "<ex:e.g. 1, 2, 999>"]; break;
-			case "ivec2":  advanced = true; tooltip = ["represents a 2-dimensional vector of whole numbers", "It consists of 2 ints: xy", "<ex:e.g. <eq:ivec2(1, 2).x  ≡  1>>"]; break;
-			case "ivec3":  advanced = true; tooltip = ["represents a 3-dimensional vector of whole numbers", "It consists of 3 ints: xyz aka rgb", "<ex:e.g. <eq:ivec3(1, 2, 3).z  ≡  3>>"]; break;
-			case "ivec4":  advanced = true; tooltip = ["represents a 4-dimensional vector of whole numbers", "It consists of 4 ints: xyzw aka rgba", "<ex:e.g. <eq:ivec4(1, 2, 3, 4).yz  ≡  ivec2(2, 3)>>"]; break;
+			case "ivec2":  advanced = true; tooltip = ["represents a 2-dimensional vector of whole numbers", "It consists of 2 ints: (x, y)", "<ex:e.g. <eq:ivec2(1, 2).x  ≡  1>>"]; break;
+			case "ivec3":  advanced = true; tooltip = ["represents a 3-dimensional vector of whole numbers", "It consists of 3 ints: (x, y, z) aka (r, g, b)", "<ex:e.g. <eq:ivec3(1, 2, 3).z  ≡  3>>"]; break;
+			case "ivec4":  advanced = true; tooltip = ["represents a 4-dimensional vector of whole numbers", "It consists of 4 ints: (x, y, z, w) aka (r, g, b, a)", "<ex:e.g. <eq:ivec4(1, 2, 3, 4).yz  ≡  ivec2(2, 3)>>"]; break;
 			case "bool":   tooltip = ["represents a boolean value", "A boolean can be either <c:true> or <c:false>"]; break;
 			case "mat2":   advanced = true; tooltip = ["represents a 2-dimensional matrix, i.e. a 2x2 array of floats"]; break;
 			case "mat3":   advanced = true; tooltip = ["represents a 3-dimensional matrix, i.e. a 3x3 array of floats"]; break;
@@ -185,7 +189,7 @@ function getCodeTooltip(token) {
 		if (token.classList.contains("constructor_type")) {
 			tooltip[0] = prefix + "A constructor which takes parameters to create a value of the given type. <ex:e.g. <c:vec2 x = vec2(0.0, 1.0);>>\n<low:This data type " + tooltip[0] + ">";
 		} else if (token.classList.contains("return_type")) {
-			tooltip[0] = prefix + `Specifies what type of value the function ${getNextToken(token).innerText} returns\n<low:This data type ` + tooltip[0] + ">";
+			tooltip[0] = prefix + `Specifies what type of value the function <c:${getNextToken(token).innerText}> returns\n<low:This data type ` + tooltip[0] + ">";
 		} else {
 			tooltip[0] = prefix + "A data type which " + tooltip[0];
 		}
@@ -218,8 +222,8 @@ function getCodeTooltip(token) {
 	} else if (token.classList.contains("function") && showSpecificTooltips["functions"]) {
 		switch (token.innerText) {
 			// Maths functions
-			case "step":  return ["Discriminates a boundary.", "Can be thought of returning if a and b are in sorted order", "<eq:x = step(a, b);  ≡  if (a <= b) { x = 1.0; } else { x = 0.0; }>", "See also <c:steps(a, b, c)>"];
-			case "steps": return ["Discrimates an upper and lower boundary.", "Can be thought of returning if (a and b) and (b and c) are in sorted order", "<eq:steps(a, b, c)  ≡  step(a, b) * step(b, c)>"];
+			case "step":  return ["Discriminates a boundary.", "<low:Can be thought of returning if a and b are in sorted order>", "<eq:x = step(a, b);  ≡  if (a <= b) { x = 1.0; } else { x = 0.0; }>", "See also <c:steps(a, b, c)>"];
+			case "steps": return ["Discrimates an upper and lower boundary.", "<low:Can be thought of returning if (a and b) and (b and c) are in sorted order>", "<eq:steps(a, b, c)  ≡  step(a, b) * step(b, c)>"];
 			case "mix": 
 			case "lerp":  return ["Linearly interpolates between two inputs", "<ex:e.g. <c:mix(a, b, 0.5)> returns 50% of the way from a to b>", "<eq:mix(a, b, t)  ≡  lerp(a, b, t)  ≡  a + t * (b - a)>"];
 			case "min":   return ["Returns the minimum of two inputs", "<eq:x = min(a, b);  ≡  if (a < b) { x = a; } else { x = b; }>"];
@@ -241,14 +245,19 @@ function getCodeTooltip(token) {
 			case "radians": return ["Converts an angle from degrees to radians", "<eq:radians(a)  ≡  TAU * a / 360>"];
 			// Vector functions
 			case "normalize": return ["Returns a vector with the same direction and a length of 1.0", "<eq:normalize(v)  ≡  v / length(v)>"];
-			case "length":    return ["Calculates the length of a vector", "<eq:length(v)  ≡  sqrt(v.x * v.x + v.y * v.y)>"];
-			case "distance":  return ["Calculates the distance between two vectors", "<eq:distance(a, b)  ≡  length(b - a)>"];
-			case "dot":       return ["Calculates the dot product between two vectors", "<low:The dot product is a measure of the angle between two vectors>", "<ex:Perpendicular vectors → 0.0                  >", "<ex:Codirectional vectors → length(a) * length(b)>", "<eq:dot(a, b)  ≡  a.x * b.x + a.y * b.y + ...>"];
+			case "length":    return ["Calculates the length or magnitude of a vector, which is the distance from the origin if it was plotted on a graph", "<eq:length(v)  ≡  sqrt(v.x * v.x + v.y * v.y)>"];
+			case "distance":  return ["Calculates the distance between two vectors,", "if they were points on a graph", "<eq:distance(a, b)  ≡  length(b - a)>"];
+			case "dot":       return ["Calculates the dot product between two vectors", "<low:The dot product is a measure related to the angle inbetween>", "<ex:Perpendicular vectors → 0.0                  >", "<ex:Codirectional vectors → length(a) * length(b)>", "<eq:dot(a, b)  ≡  a.x * b.x + a.y * b.y + ...>"];
 			// Custom functions
 			case "placeSticker":
 			case "place_sticker": return ["Places the specified sticker at the given uv position", "<eq:place_sticker(sticker, uv);  ≡  placeSticker(sticker, uv);  ≡  COLOR = overlay(COLOR, texture2D(sticker, uv));>"];
 			case "overlay":       return ["Returns the result of drawing the 2nd RGBA color over the 1st", "<eq:overlay(color1, color2)  ≡  mix(color1, color2, color2.a)>"];
 		}
+		
+		const functionData = getShaderEditor(token).typeData[token.innerText];
+		if (functionData?.type == "struct") return "A custom data type defined by struct";
+		const type = functionData?.type ? ` that returns a <c:${functionData.type}> value,` : "";
+		return [`A function${type} given the name <c:${token.innerText}>`, "<low:A function is a section of code that performs a task, usually by passing in inputs and returning an output.>", "<ex:e.g. <c:float my_function(float f) { return f * f; }>>", "<ex:<c:void main() { float foo = my_function(2.0); }>>"];
 	} else if (token.classList.contains("operator") && showSpecificTooltips["operators"]) {
 		// Handle double operators
 		let operator = token.innerText;
@@ -312,13 +321,13 @@ function getCodeTooltip(token) {
 			return `Accesses the ${token.innerText.slice(1)} field of ${prevToken}`;
 		}
 	} else if (token.classList.contains("variable")) {;
-		const variableData = codeVariables[token.innerText];
+		const variableData = getShaderEditor(token).typeData[token.innerText];
 		if (variableData?.type == "struct") return "A custom data type defined by struct";
-		const type = variableData?.type ?? "unknown";
-		switch (variableData?.varType) {
-			case "Uniform": return [`Uniform of type ${type}`, "<low:A uniform is a top-level variable which allows values to be externally passed into the shader via autogenerated input fields>"];
-			case "Iterator": return `Iterator of type ${type}`, "<low:This variable is defined in a for loop, and represents a number which increments with each loop>";
-			default: return `Variable of type ${type}`;
+		const type = variableData?.type ? ` of type <c:${variableData.type}>` : "";
+		switch (variableData?.modifier) {
+			case "Uniform": return [`Uniform${type} given the name <c:${token.innerText}>`, "<low:A uniform is a top-level variable which allows values to be externally passed into the shader via autogenerated input fields>"];
+			case "Iterator": return `Iterator${type} given the name <c:${token.innerText}>`, "<low:This variable is defined in a for loop, and represents a number which increments with each loop>";
+			default: return `Variable${type} given the name <c:${token.innerText}>`;
 		}
 	}
 	return null
@@ -341,13 +350,20 @@ function isSwizzle(parts) {
 	return isXYZW || isRGBA;
 }
 
-function getCodeVariables(code) {
+function getTypeData(code) {
 	let output = {}
-	for (let varDefMatch of code.matchAll(varDefRegex)) {
-		let varType = null;
-		if (varDefMatch[1]?.startsWith("uniform")) varType = "Uniform";
-		else if (varDefMatch[1]?.startsWith("for")) varType = "Iterator";
-		output[varDefMatch[3]] = {type: varDefMatch[2], varType: varType};
+	for (let defMatch of code.matchAll(varDefRegex)) {
+		output[defMatch[3]] = {type: defMatch[2]};
+		if      (defMatch[1]?.startsWith("uniform")) output[defMatch[3]].modifier = "Uniform";
+		else if (defMatch[1]?.startsWith("for"))     output[defMatch[3]].modifier = "Iterator";
 	}
 	return output;
+}
+function getShaderEditor(token) {
+	if (!shaderEditors) return null;
+	
+	const editor = token.closest(".editor");
+	for (let shaderEditor of shaderEditors) {
+		if (shaderEditor.editor == editor) return shaderEditor;
+	}
 }

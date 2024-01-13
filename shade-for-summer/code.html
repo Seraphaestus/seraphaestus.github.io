@@ -20,20 +20,9 @@
 		
 		<div class="content flex-container">
 			<div style="flex:1 1 60%; max-width: 62.8%; margin:0 1em 3.5em 1em; position:relative; z-index:1">
-				<div id="uniform-area">
-					<!-- Value setter dialog -->
-					<dialog id="setter-dialog">
-						<form method="dialog">
-							<p id="inputs"></p>
-							<div class="unselectable" style="text-align:center";>
-								<button type="submit" style="display:inline-block">Confirm</button>
-								<button type="reset" style="display:inline-block">Cancel</button>
-							</div>
-						</form>
-					</dialog>
-				</div>
-				<div class="editor language-glsl" style="margin-top:0.5em; overflow-x:auto;">void main() {
-	COLOR = vec4(0.15, 0.15, 0.15, 1.0);
+				<div class="editor language-glsl flag-save-code flag-save-uniforms flag-interactive flag-line-numbers flag-tooltips" 
+						 canvas="editable-canvas" style="margin-top:0.5em; overflow-x:auto;">void main() {
+	COLOR = vec4(RATIO.x, RATIO.y, 1.0, 1.0);
 }</div>
 			</div>
 			<div id="canvas-area", style="flex: 1 1 40%;">
@@ -63,27 +52,23 @@
 		
 		<script type="text/javascript" src="scripts/webgl-utils.js"></script>
 		<script type="text/javascript" src="scripts/canvas.js"></script>
-		<script type="text/javascript" src="scripts/main.js"></script>
+		<script type="text/javascript" src="scripts/shader-editor.js"></script>
 		
 		<!-- Code Tooltips scripts -->
 		<script type="text/javascript" src="scripts/text-utils.js"></script>
 		<script type="text/javascript" src="scripts/code-tooltips.js"></script>
 		
+		<script type="text/javascript" src="scripts/main.js"></script>
+		
 		<!-- CodeJar scripts -->
+		<script type="text/javascript" src="scripts/init-codejar.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/components/prism-core.min.js"></script>
 		<script type="module" id="code">
 			import {CodeJar} from "https://medv.io/codejar/codejar.js?"
 			import {withLineNumbers} from 'https://medv.io/codejar/linenumbers.js';
 			
-			const editor = document.querySelector(".editor");
-			codeJar = new CodeJar(editor, withLineNumbers(Prism.highlightElement));
-			codeJar.onUpdate(onCodeEdited);
-			// Load saved code from local
-			const loaded_code = localStorage.getItem('code');
-			if (loaded_code) codeJar.updateCode(loaded_code);
-			
+			setup(CodeJar, withLineNumbers);
 		</script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/components/prism-core.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/plugins/autoloader/prism-autoloader.min.js"></script>
 
 	</body>
 </html>
